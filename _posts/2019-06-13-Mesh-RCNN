@@ -1,0 +1,48 @@
+---
+layout: post
+title:  "Mesh-RCNN"
+date:   2019-06-13 11:51:32 +0100
+categories: jekyll update
+---
+
+Introduction
+- An extension to Mask-RCNN that generates a 3D mesh for each object segmented by Mask-RCNN.
+
+Architecture
+- Voxel branch
+    - Parallel to the box and mask branches of Mask-RCNN with independent weights but sharing the same backbone.
+    - Output is a coarse voxel probability map represented by pixel maps of resolution $H x W$ with $N$ channels where for each position $(x,y)$ on the grid the i-th channel indicates the probability that $z = i$.
+- Cubification
+    - Output is transformed to a coarse cubic mesh in an efficient manner 
+    - This step does not seek to change the geometry of the predicted shape but only its representation from a voxel grid into a mesh
+- Mesh refinement
+    - A sequence of blocks, where the first one refines the initial mesh and where each subsequent block refines the intermediate mesh output by the previous block. 
+    - VertAlign
+        - Initially 3D output is in an isometric grid so spacing between the x and y coordinates at all distances $z$
+        - However objects become smaller as they recede from the camera in order to maintain pixelwise correspondence between the image and predictions they are projected using the camera's known intrinsic matrix $K$ into the world space.
+        - Like in RoIAlign bilinear interpolation is used to estimate the exact feature vectors for the projected points. 
+        - The result is a set of vertex and edges plus a feature vector for each vertex
+        - This step is applied to the intermediate grids of subsequent layers but I am not sure how to interpret it for subsequent steps since the points have already been projected.
+        - In the second and subsequent blocks the input feature vectors are concatenated with the feature vectors 
+    - Graph Convolution 
+        - Updates the feature vectors for each vertex  $i$ using a sequence of graph convolutions $f'_i = ReLU(W_0f_i + \sum_{j \in \mathcal{N}(i)W_1f_j}) where $\mathcal{N}(i)$ is set of vertices to which vertex $i$ is connected. 
+    - Vertex refinement
+        - Vertex positions are updated as $v_i' = v_i + tanh(W_{vert}[f_i;v_i])$
+        - This changes the geometry but not the topology of the mesh.
+        - If you think the mesh as a graph and disregard the coordinates the vertices represent, the connectivity between the vertices does not change but the values of the vertices does.
+        - In this step the feature vectors associated with each vertex are unchanged.
+        - The unchanged topology at the end of the mesh refinement block allows us to concatenate the feature vectors from previous blocks in the VertAlign step
+Loss functions
+- Since it is challenging to define losses for a mesh representation, points are densely sampled from the mesh in order to calculate the losses.
+- The chamfer distance measures the similarity of the predicted and ground truth point clouds
+[Equation]
+- The normal distance measures the similarity of the face orientation of the predicted and ground truth meshes 
+[Equation]
+- Minimising these losses does not necessarily produce a good quality mesh so a shape regularizer is added in the form an edge loss:
+[Equation]
+Results
+[TODO]
+
+
+    
+    
