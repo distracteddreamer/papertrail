@@ -1,0 +1,49 @@
+---
+layout: post
+title:  "Style GAN"
+date:   2019-06-24 20:16:00 +0100
+categories: jekyll update
+---
+
+        
+          _____
+_________ |   |
+|   ____|_|___|
+|   |   | |  ||
+|___|___| |  ||
+    |_____|__||
+          |___|
+
+- Say 2 left from A, right from B
+- Say leftmost of A is best so rightmost gets eliminated during NMS over A
+- After individual NMS:
+
+          _____
+          |   |
+    ______|___|
+    |     |  ||
+    |     |  ||
+    |_____|__||
+          |___|
+
+- After ensemble NMS over the above:
+
+          _____
+          |   |
+          |   |
+          |   |
+          |   |
+          |   |
+          |___|
+
+- After ensemble NMS over the whole:
+
+          _____
+_________ |   |
+|       | |   |
+|       | |   |
+|_______| |   |
+          |   |
+          |___|
+
+- But is it possible that more get ELIMINATED after ensemble NMS without individual NMS
