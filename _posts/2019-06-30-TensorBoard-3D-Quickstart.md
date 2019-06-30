@@ -26,7 +26,7 @@ We will make use of the library meshzoo which as the name implies contains funct
 pip3 install meshzoo
 {% endhighlight %}
 
-Let us create a summary for the mesh of a sphere and of a moebius strip. First load the meshes (represented as set of vertices and edges) from mesh zoo.
+Let us create a summary for the mesh of a sphere and of a Moebius strip. First load the meshes (represented as set of vertices and edges) from mesh zoo.
 
 {% highlight python %}
 import meshzoo
