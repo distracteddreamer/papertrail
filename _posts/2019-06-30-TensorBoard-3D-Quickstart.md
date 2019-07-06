@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "TensorBoard for 3D - quickstart"
+title:  "TensorBoard for 3D data - quickstart"
 date:   2019-06-30 11:51:32 +0100
 categories: jekyll update
 ---
