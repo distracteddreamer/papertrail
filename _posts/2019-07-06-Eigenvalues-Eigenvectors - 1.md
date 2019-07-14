@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "Notes on eigenvalues and eigenvectors"
-date:   2019-06-30 11:51:32 +0100
+title:  "Notes on eigenvalues and eigenvectors - 1"
+date:   2019-07-06 11:51:32 +0100
 categories: jekyll update
 ---
 These are my study notes for [Eigenvalues and Eigenvectors](http://linear.ups.edu/html/section-EE.html) from [A First Course in Linear Algebra](http://linear.ups.edu/html/fcla.html) by Robert A. Beezer. All mistakes are my own. Please see the text for detailed explanations and examples. 
