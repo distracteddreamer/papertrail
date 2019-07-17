@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Notes on eigenvalues and eigenvectors - 1"
+title:  "Notes on eigenvalues and eigenvectors, Part 1"
 date:   2019-07-06 11:51:32 +0100
 categories: jekyll update
 ---

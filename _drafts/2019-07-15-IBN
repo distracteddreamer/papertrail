@@ -1,0 +1,2 @@
+- Instance norm used along with BN
+- Each applied to half of the channels of first conv of the first three blocks
