@@ -620,4 +620,4 @@ for i, name in enumerate(names):
 
 # Part 2
 
-In the [next part](/papertrail/jekyll/update/2019/07/17/Federated-Farming-Model.html) we will try training some federated learning models. 
+In the [next part]({{ site.baseurl }}/jekyll/update/2019/07/17/Federated-Farming-Model.html) we will try training some federated learning models. 

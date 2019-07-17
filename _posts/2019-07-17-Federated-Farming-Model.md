@@ -9,7 +9,7 @@ These are my notes on implementing the federated learning approach presented in 
 
 # Introduction
 
-Here we implement and train some federated learning models using the data partitions we created in [part 1](/papertrail/jekyll/update/2019/07/17/Federated-Farming-Data.html).  All the code for the models is in the file [Federated_Farming-Model.py](https://github.com/distracteddreamer/fedfarm/blob/master/Federated_Farming-Model.py). For convenience I am using Keras to build the models. 
+Here we implement and train some federated learning models using the data partitions we created in [part 1]({{ site.baseurl }}/jekyll/update/2019/07/17/Federated-Farming-Data.html).  All the code for the models is in the file [Federated_Farming-Model.py](https://github.com/distracteddreamer/fedfarm/blob/master/Federated_Farming-Model.py). For convenience I am using Keras to build the models. 
 
 First we create a dataloader for Keras based on this helpful [tutorial](https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly). It has the option of passing in a `client_colm` which refers to the type of shard ("shard_iid" or "shard_non_iid") and a `num` argument which is the shard id, so we can have a separate data generator for each client.
 
