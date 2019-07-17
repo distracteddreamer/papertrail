@@ -162,7 +162,7 @@ def average_weights(weights, n_examples):
     return [np.sum(np.stack(w, axis=-1) * n_examples, axis=-1) 
             / total_examples for w in weight_lists]
 ```
-# Results [WIP]
+## Results [WIP]
 
 Models are compared based on the number of weight updates needed for the model to reach a certain level of performance. For the standard model each mini-batch leads to an update while for the federated learning models the global model is updated after each communication round. For the randomly sampled shards it takes only 27 rounds to reach the highest accuracy attained by the baseline model of 64.06 % which takes more than 7000 minibatch updates. The model trained on non-representative shard clients did not manage to reach the baseline performance for the number of rounds it was trained. However at lower scores it matches the performance of the baseline after fewer rounds. The baseline reaches above 50% accuracy after more than 1500 updates whereas this model takes a little over 150 rounds. I stopped training as it looked like it was overfitting but the model could potentially be tuned to perform better.
 
