@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Federated Farming, Part 1 - Data"
-date:   2019-07-17 00:16:00 +0100
+date:   2019-07-17 01:16:00 +0100
 categories: jekyll update
 ---
 These are my notes on implementing the federated learning approach presented in [Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629v3). You can find all the code [here](https://github.com/distracteddreamer/fedfarm). All mistakes are my own. 
