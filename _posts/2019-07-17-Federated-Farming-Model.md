@@ -164,17 +164,25 @@ def average_weights(weights, n_examples):
 ```
 ## Results [WIP]
 
-Models are compared based on the number of weight updates needed for the model to reach a certain level of performance. For the standard model each mini-batch leads to an update while for the federated learning models the global model is updated after each communication round. For the randomly sampled shards it takes only 27 rounds to reach the highest accuracy attained by the baseline model of 64.06 % which takes more than 7000 minibatch updates. The model trained on non-representative shard clients did not manage to reach the baseline performance for the number of rounds it was trained. However at lower scores it matches the performance of the baseline after fewer rounds. The baseline reaches above 50% accuracy after more than 1500 updates whereas this model takes a little over 150 rounds. I stopped training as it looked like it was overfitting.
+Models are compared based on the number of weight updates needed for the model to reach a certain level of performance. For the standard model each mini-batch leads to an update while for the federated learning models the global model is updated after each communication round. For the randomly sampled shards it takes only 27 rounds to reach the highest accuracy attained by the baseline model of 64.06 % which takes more than 7000 minibatch updates.
+
+With the non-representative shards I first stopped the training after about 175 rounds as it did not seem to be improving.
+
+![png]({{ site.baseurl }}/assets/Federated_Farming-Model/acc1.png)
+
+![png]({{ site.baseurl }}/assets/Federated_Farming-Model/loss1.png)
+
+But then I realised I didn't take into account that the curve would be a lot noiser between rounds. Since typically you plot validation metrics after each epoch rather each mini-batch update I was expecting a smoother curve and misinterpreted the lack of change for several rounds as convergence. 
 
 ![png]({{ site.baseurl }}/assets/Federated_Farming-Model/acc_plots.png)
 
-Possible overfitting of non-representative shard model.
+I tried another model where I decayed the learning rate so that after $n$ rounds it was $\alpha_0 \times 0.999^n$. The accuracy improves for a lot longer, starting to converge as the loss curve shows signs of overfitting.
 
-![png]({{ site.baseurl }}/assets/Federated_Farming-Model/loss_non_iid.png)
+![png]({{ site.baseurl }}/assets/Federated_Farming-Model/acc2.png)
 
-![png]({{ site.baseurl }}/assets/Federated_Farming-Model/acc_non_iid.png)
+![png]({{ site.baseurl }}/assets/Federated_Farming-Model/loss2.png)
 
-
-But I realised I didn't take into account the non-representative shards, the curve is going to be a lot noiser between rounds. Since typically you plot validation metrics after each epoch rather each mini-batch update I was expecting a smoother curve and misinterpreted the lack of change for several rounds as convergence. I tried another model where I decayed the learning rate so that after $n$ rounds it was $\alpha_0 \times 0.994^n$. This is still training but as can be seen it is continuing to improve.
+Like the CIFAR10 model in the paper this model did not manage to reach the baseline accuracy but reached almost 63% accuracy after 1183 updates whereas it took the baseline model almost 3 times as many updates to get beyond 62% and about 4 times as many updates to cross 63%. One caveat in these comparisons is that for the baseline metrics were only measured at the end of each epoch rather than each update as for the federated learning setup. However since the epoch accuracy improved very slowly, these are still likely to be in the right range of values. 
 
 ![png]({{ site.baseurl }}/assets/Federated_Farming-Model/acc_plots2.png)
+
