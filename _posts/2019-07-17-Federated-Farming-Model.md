@@ -7,7 +7,7 @@ categories: jekyll update
 
 These are my notes on implementing the federated learning approach presented in [Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629v3). You can find all the code [here](https://github.com/distracteddreamer/fedfarm). All mistakes are my own. 
 
-# Introduction
+## Introduction
 
 Here we implement and train some federated learning models using the data partitions we created in [part 1]({{ site.baseurl }}/jekyll/update/2019/07/17/Federated-Farming-Data.html).  All the code for the models is in the file [Federated_Farming-Model.py](https://github.com/distracteddreamer/fedfarm/blob/master/Federated_Farming-Model.py). For convenience I am using Keras to build the models. 
 
@@ -184,3 +184,5 @@ Like the CIFAR10 model in the paper this model did not manage to reach the basel
 
 ![png]({{ site.baseurl }}/assets/Federated_Farming-Model/acc_plots2.png)
 
+## Next steps
+I used a very basic model from the paper for these experiments. I didn't look at any of the approaches used in the Kaggle challenge. Also I forgot to use augmentations. So the baseline was very low. It might worth trying at least some augmentations as well as some of the smaller models (in the interests of speed for the federated setup) from the Kaggle challenge to improve the performance. 
