@@ -172,11 +172,9 @@ With the non-representative shards I first stopped the training after about 175 
 
 ![png]({{ site.baseurl }}/assets/Federated_Farming-Model/loss1.png)
 
-But then I realised I didn't take into account that the curve would be a lot noiser between rounds. Since typically you plot validation metrics after each epoch rather each mini-batch update I was expecting a smoother curve and misinterpreted the lack of change for several rounds as convergence. 
-
 ![png]({{ site.baseurl }}/assets/Federated_Farming-Model/acc_plots.png)
 
-I tried another model where I decayed the learning rate so that after $n$ rounds it was $\alpha_0 \times 0.999^n$. The accuracy improves for a lot longer, starting to converge as the loss curve shows signs of overfitting.
+But then I realised I didn't take into account that the curve would be a lot noiser between rounds. Since typically you plot validation metrics after each epoch rather each mini-batch update I was expecting a smoother curve and misinterpreted the lack of change for several rounds as convergence. So I tried another model where I decayed the learning rate so that after $n$ rounds it was $\alpha_0 \times 0.999^n$. The accuracy improves for a lot longer, starting to converge as the loss curve shows signs of overfitting.
 
 ![png]({{ site.baseurl }}/assets/Federated_Farming-Model/acc2.png)
 
