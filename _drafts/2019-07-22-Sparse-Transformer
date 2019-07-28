@@ -1,0 +1,8 @@
+---
+layout: post
+title:  "Papers in a hurry - Sparse Transformer"
+date:   2019-07-22 11:51:32 +0100
+categories: jekyll update
+---
+
+In the standard Transformer (see this excellent tutorial to understand it in depth) self-attention,each position attends to all previous positions which is $O(n^2)$ making it prohibitively expensive for long sequences. It turns out that in practice at least some of the learned attention maps are quite sparse, sometimes attending only to specific points for certain categories or paying attention only to some columns or rows - the latter suggestive of some kind of factorisation of the attention maps. This motivates the design of sparse attention heads that for each point only attend to a subset of previous locations. However there are several such heads each with a different subset so that via a combination of heads, a path exists from each previous location to the present one. The complexity is now $O(n\sqrt(n))$ rather than $O(n^2)$.
