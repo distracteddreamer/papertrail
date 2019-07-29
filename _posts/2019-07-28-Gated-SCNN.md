@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Daily Paper - Gated-SCNN"
+title:  "Daily ML - Gated-SCNN"
 date:   2019-07-28 9:51:32 +0100
 categories: jekyll update
 ---
