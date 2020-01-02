@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Daily ML - Disconnected Manifold Learning for GANs"
+title:  "Disconnected Manifold Learning for GANs"
 date:   2019-08-01 11:51:32 +0100
 categories: jekyll update
 ---

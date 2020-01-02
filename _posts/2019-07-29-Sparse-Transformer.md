@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Daily ML - Sparse Transformer"
+title:  "Sparse Transformer"
 date:   2019-07-29 11:51:32 +0100
 categories: jekyll update
 ---

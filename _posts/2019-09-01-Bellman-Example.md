@@ -1,11 +1,9 @@
 ---
 layout: post
-title:  "Bellman equations example"
+title:  "Bellman equations in vectorised form"
 date:   2019-09-02 11:51:32 +0100
 categories: jekyll update
 ---
-
- # Bellman equations in vectorised form
 
 In this post we will go through the steps for example 3.8 in Sutton and Barto. 
 

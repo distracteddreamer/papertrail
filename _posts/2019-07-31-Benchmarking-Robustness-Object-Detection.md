@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Daily ML - Benchmarking Robustness in Object Detection"
+title:  "Benchmarking Robustness in Object Detection"
 date:   2019-07-31 11:51:32 +0100
 categories: jekyll update
 ---
