@@ -1,5 +1,7 @@
 import argparse
 import nbconvert
+import re
+import shutil
 import os
 from datetime import datetime
 
@@ -34,8 +36,21 @@ exporter.preprocessors.append(
 print('Exporting notebook {}'.format(notebook_file))
 body, resources = exporter.from_file(notebook_file)
 
-if len(resources['outputs']) > 0:
+print('Formatting post')
+date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# Add header 
+post = HEADER.format(args.title, date) + '\n\n' + body
+
+if ('![png]' in post) and (len(resources['outputs']) == 0):
+    img_paths = re.findall(r'!\[png\]\((.*)?\)', post)
+    for img_path in img_paths:
+        resources['outputs'][img_path.split('/')[-1]] = img_path
+
+if (len(resources['outputs']) > 0):
     resources_folder = 'assets/{}'.format(post_name)
+
+    
 
     print('Making resources folder {}'.format(resources_folder))
     resources_path = '../' + resources_folder 
@@ -43,19 +58,18 @@ if len(resources['outputs']) > 0:
         os.makedirs(resources_path)
         
     for name, img in resources['outputs'].items():
-        with open(os.path.join(resources_path, name), 'wb') as f:
-            f.write(img)
-            print('Saved {}'.format(name))
+        save_path = os.path.join(resources_path, name)
+        if isinstance(img, str):
+            shutil.copyfile(img, save_path)
+            print('Copied image from {} to {}'.format(img, save_path))
+        else:
+            with open(save_path, 'wb') as f:
+                f.write(img)
+                print('Saved {}'.format(name))
 
-print('Formatting post')
-date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-# Add header 
-post = HEADER.format(args.title, date) + '\n\n' + body
-
-# Add reference to url 
-post = post.replace('![png](',
-'![png]({{ site.baseurl }}/%s/' % resources_folder)
+    # Add reference to url 
+    post = post.replace('![png](',
+    '![png]({{ site.baseurl }}/%s/' % resources_folder)
 
 post_filename = '{}-{}.md'.format(date.split()[0], post_name)
 print('Saving post {}'.format(post_filename))
