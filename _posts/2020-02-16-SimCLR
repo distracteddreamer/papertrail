@@ -1,0 +1,77 @@
+---
+layout: post
+title:  SimCLR
+date:   2020-02-16 10:37:00
+categories: jekyll update
+---
+
+## Architecture
+
+## The approach
+- The model is trained on a large unlabelled dataset using the contrastive loss.
+- It can be used to generate features that can be used in tasks downstream without having to train a large supervised model. 
+- Typically the model is evaluated by training a linear classifier using these features
+
+##  NT-Xent loss
+- Using CE-loss automatically does hard-negative mining with the right temperature.
+- If a negative example has a high probability it leads to higher contribution to the gradient in the opposite direction 
+- The input vectors to the loss are $l_2$-normalised 
+- Adding semi-hard negative mining helps performance when using other losses but NT-Xent is still the best
+
+
+## Implementation details
+- Augmentations
+    - Random crop and resize
+    - Random flip
+    - Colour distortion
+    - Gaussian blur
+- ResNet50 as base encoder $f$
+- 2-layer MLP to project representations to a 128-dimensional space
+- NT-Xent loss
+- LARS optimiser
+- Weight decay of 10^{-6}
+- Batch size of 4096 for 100 epochs
+- Learning rate
+    - Linear learning rate scaling `lr = 0.3 * batch_size / 256`
+    - Linear warmup for first 10 epochs
+    - Cosine decay schedule without restarts
+
+
+## Differences between supervised and unsupervised
+They following which can benefit supervised training were found to a have a greater effect on improving performance of unsupervised models trained in this paper compared to several supervised models:
+-  Bigger i.e. wider and / or deeper models
+- Non-linear
+- Larger batch sizes
+     - Helps models to converge after fewer iterations
+     - To put it differently when training for fewer iterations larger batch sizes lead to better performance
+     - The reason for the effect for unsupervised learning is that availability of more negative examples
+     - Longer training also provides more negative examples so compensates for smaller batch size
+
+## Effect of augmentations
+- You can typically tell which patch an image comes from by its colour histogram since most patches from a given image have a similar colour distribution (presumably they mean most sufficiently large patches).
+- To prevent the model from exploiting this short-cut, colour distortion should be applied not just cropping. 
+- Unsupervised learning benefits more from stronger colour augmentations than supervised:
+    - They compare supervised ResNet50 with a linear classifier trained with unsupervised ResNet50 features
+    - They compared the effect in each case of applying colour augmentations of various strengths and AutoAugment
+    - For supervised, AutoAugment is better than all the strengths and increasing the strength makes performance worse
+    - For unsupervised increasing strength improves performance, surpassing AutoAugment at higher strengths
+- Different augmentations applied on their own or in pairs,
+    - They are applied both orders e.g. colour then noise, noise then color:
+    - In some cases the order does matter - for coloir and noise, coloir followed by noise does between than noise followed by colour
+- For the above since images are of different sizes cropping is always done with other transform, they study the effect of augmentations applied on their own 
+    - Randomly crop and resize each image to the same resolution
+    - Apply transform only to one branch of the framework
+
+## Results
+- Semi-supervised
+    - Model is finetuned on a small fraction (1% or 10% of the data)
+- Transfer learning
+    - Classification experiments are done on 12 other image datasets
+    - An ImageNet trained ResNet50 is used, either frozen or fine-tuned.
+    - It does as well or better in 7 out of 12 datasets when the backbone is frozen.
+    - It does as well or better in 10 out of 12 datasets when the backbone is finetuned. 
+- Linear evaluation
+    - Beats all earlier methods
+    - An unsupervised Wide ResNet50 with width multiplier 4x achieves ImageNet top-1 accuracy of 76.5 % in linear evaluation that is comparable to the result from supervised ResNet50 (76.3 %).
+
+[READ related work]

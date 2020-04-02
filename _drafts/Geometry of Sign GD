@@ -1,0 +1,7 @@
+- Sign of gradient not gradient itself is used to update
+- Smoothness assumption meaning that L1 norm of difference across all directions of f: x-> y of two vectors is bounded by the a factor proportional to the max difference in the vector components across all directions.
+- Non-smoothness or separable - $$f(x')$$ is bounded by $$f(x)$$ plus two dot products:
+    - $$<\nabla f(x), x' - x>$$
+    - $$<l, (x' - x)^2>$$
+- A function is considered to be $L$-smooth if 
+- Tightest possible smoothness constant is the ratio of dual norm of $$\nabla f(x') - \nabla f(x)$$ to the ratio of the norm of $$x - x'$$ via whatever norm is considered 
