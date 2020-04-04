@@ -42,15 +42,15 @@ date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 # Add header 
 post = HEADER.format(args.title, date) + '\n\n' + body
 
-if ('![png]' in post) and (len(resources['outputs']) == 0):
-    img_paths = re.findall(r'!\[png\]\((.*)?\)', post)
+img_paths = re.findall(r'!\[png\]\((.*)?\)', post)
+if len(img_paths) > (len(resources['outputs']) == 0):
     for img_path in img_paths:
-        resources['outputs'][img_path.split('/')[-1]] = img_path
+        fname = img_path.split('/')[-1]
+        if fname not in resources['outputs']:
+            resources['outputs'][fname] = img_path
 
 if (len(resources['outputs']) > 0):
     resources_folder = 'assets/{}'.format(post_name)
-
-    
 
     print('Making resources folder {}'.format(resources_folder))
     resources_path = '../' + resources_folder 
