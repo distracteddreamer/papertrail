@@ -39,7 +39,7 @@ categories: jekyll update
 
 ## Differences between supervised and unsupervised
 They following which can benefit supervised training were found to a have a greater effect on improving performance of unsupervised models trained in this paper compared to several supervised models:
--  Bigger i.e. wider and / or deeper models
+- Bigger i.e. wider and / or deeper models
 - Non-linear
 - Larger batch sizes
      - Helps models to converge after fewer iterations
