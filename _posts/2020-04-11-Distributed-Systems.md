@@ -5,7 +5,7 @@ date:   2020-04-11 20:32:00
 categories: jekyll update
 ---
 
-Notes from study of [MIT's 6.824: Distributed Systems](https://pdos.csail.mit.edu/6.824/index.html). This is not intended to be a summary of the topics but thoughts and notes related to the concepts in the course, including the weekly questions.
+Notes from my study of [MIT's 6.824: Distributed Systems](https://pdos.csail.mit.edu/6.824/index.html). This is not intended to be contain a summary of the topics but thoughts and notes related to the concepts in the course.
 
 ## Week 1 — MapReduce
 - Whilst the method allows for workers failure, the master is not expected to fail. This is because there is only a single master and if there is a large number of computers, the probability of any a particular computer failing is low. However the probability that some machine will fail might not be negligible, hence the need to anticipate worker failure. 
