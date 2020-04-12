@@ -19,4 +19,4 @@ Notes from my study of [MIT's 6.824: Distributed Systems](https://pdos.csail.mit
 
 #### Failure and determinism
 - When map and reduce operators are deterministic every time you will get the same results as you would in a sequential execution of the whole program e.g. if you are doing word counts, you count the number of words in document 1, then count those in document 2 and increment the count, and so on. Even if there is a failure and you re-run some of the tasks this will be just the same.
-- However in the absence of deterministic one reduce task R1's output might correspond to one sequential execution whilst another reduce task R2's might correspond to another sequential execution since each time the map task is re-run it might produce a different output. 
+- However in the absence of determinism reduce task R1's output might correspond to one sequential execution whilst another reduce task R2's might correspond to another sequential execution since each time the map task is re-run it might produce a different output. 
