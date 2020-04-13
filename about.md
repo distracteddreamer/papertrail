@@ -13,4 +13,4 @@ For a while I tried to reach a modest level of finish, both in the sense of comp
 
 Someday I might write beautiful memorable blog posts. For the present, the blog's purposes are served just as well by posting what notes I have, however imperfect, rough or fragmented they may be, instead of leaving them lying around, lost or forgotten.
 
-Lastly, let me stress that this is my learning journey so if you happen refer to my notes, code, or problem solutions, don't be surprised if you find mistakes
+Lastly, let me stress that this is my learning journey so if you happen refer to my notes, code, or my problem solutions, don't be surprised if you find mistakes
