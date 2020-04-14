@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "[WIP] Convex Optimisation Week 1"
-date:   2020-04-13 19:25:00
+date:   2020-04-14 12:00:00
 categories: jekyll update
 ---
 
