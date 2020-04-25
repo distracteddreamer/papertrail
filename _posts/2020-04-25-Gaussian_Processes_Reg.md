@@ -6,7 +6,7 @@ categories: jekyll update
 ---
 
 
-In this notebook I am recreating the simple Gaussian Process example described in this tutorial. The results are not identical since the tutorial provides the values only for the inputs $\mathbf{x}$ and not for the outputs $\mathbf{y}$ for which I read off approximate values from the plot in Figure 1 of the tutorial.
+In this notebook I am recreating the simple Gaussian Process example described in [this](http://www.robots.ox.ac.uk/~mebden/reports/GPtutorial_old.pdf) tutorial. The results are not identical since the tutorial provides the values only for the inputs $\mathbf{x}$ and not for the outputs $\mathbf{y}$ for which I read off approximate values from the plot in Figure 1 of the tutorial.
 
 
 ```python
