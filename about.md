@@ -6,8 +6,8 @@ permalink: /about/
 
 I have chosen the name Paper Trail to suggest the two main purposes this blog serves:
 
-1. To maintain an account of my studies of machine learning and related fields, both near and distant
-2. To track my reading of machine learning research publications.
+1. To maintain an account of my studies of AI and related fields, both near and distant
+2. To track my reading of AI research publications.
 
 For a while I tried to reach a modest level of finish, both in the sense of completeness and polish, before I published a post but found myself struggling to make progress. I've not lowered my standards but switched strategy.
 
