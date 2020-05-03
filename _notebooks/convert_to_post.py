@@ -41,13 +41,15 @@ date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # Add header 
 post = HEADER.format(args.title, date) + '\n\n' + body
+replace = {}
 
-img_paths = re.findall(r'!\[png\]\((.*)?\)', post)
+img_paths = re.findall(r'!\[(.*)?\]\((.*)?\)', post)
 if len(img_paths) > len(resources['outputs']):
-    for img_path in img_paths:
+    for label, img_path in img_paths:
         fname = img_path.split('/')[-1]
         if fname not in resources['outputs']:
             resources['outputs'][fname] = img_path
+        replace[fname] = label
 
 if (len(resources['outputs']) > 0):
     resources_folder = 'assets/{}'.format(post_name)
@@ -67,9 +69,14 @@ if (len(resources['outputs']) > 0):
                 f.write(img)
                 print('Saved {}'.format(name))
 
-    # Add reference to url 
-    post = post.replace('![png](',
-    '![png]({{ site.baseurl }}/%s/' % resources_folder)
+        # Add reference to url 
+        label = replace[fname]
+        post = post.replace('![%s](' % label,
+        '![%s]({{ site.baseurl }}/%s/' % (label, resources_folder))
+
+    # # Add reference to url 
+    # post = post.replace('![png](',
+    # '![png]({{ site.baseurl }}/%s/' % resources_folder)
 
 post_filename = '{}-{}.md'.format(date.split()[0], post_name)
 print('Saving post {}'.format(post_filename))

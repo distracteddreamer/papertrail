@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Transformer Notes
-date:   2020-05-03 11:16:39
+date:   2020-05-03 10:33:02
 categories: jekyll update
 ---
 
@@ -13,7 +13,7 @@ When attending to other elements, elements are excluded as follows:
 - For the source sequence, any pad elements
 - For the target sequence, any pad elements plus any elements that appear after the present element. 
 
-Masking is done in the following class (credit: [The Annotated Transformer](http://nlp.seas.harvard.edu/2018/04/03/attention.html) )
+Masking is done in the following class (credit: [The Annotated Transformer](http://nlp.seas.harvard.edu/2018/04/03/attention.html) ):
 
 
 ```python
@@ -38,6 +38,6 @@ class Batch:
         return tgt_mask
 ```
 
-This is illustrated below for a single sequence where batch dimension is omitted for clarity
+This is illustrated below for a single sequence where batch dimension is omitted for clarity:
 
-![png]({{ site.baseurl }}/assets/Transformer_Notes/masking.png)
+![diagram-showing-source-target-masking]({{ site.baseurl }}/assets/Transformer_Notes/masking.png)
