@@ -43,7 +43,7 @@ date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 post = HEADER.format(args.title, date) + '\n\n' + body
 
 img_paths = re.findall(r'!\[png\]\((.*)?\)', post)
-if len(img_paths) > (len(resources['outputs']) == 0):
+if len(img_paths) > len(resources['outputs']):
     for img_path in img_paths:
         fname = img_path.split('/')[-1]
         if fname not in resources['outputs']:
