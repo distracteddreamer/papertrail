@@ -80,5 +80,6 @@ if (len(resources['outputs']) > 0):
 
 post_filename = '{}-{}.md'.format(date.split()[0], post_name)
 print('Saving post {}'.format(post_filename))
+
 with open('../_posts/{}'.format(post_filename), 'w') as f:
     f.write(post)

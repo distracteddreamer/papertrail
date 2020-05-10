@@ -1,3 +1,10 @@
 {
-    "python.pythonPath": "/Library/Frameworks/Python.framework/Versions/3.8/bin/python3"
+    "python.pythonPath": "/Users/anush/Library/Mobile Documents/com~apple~CloudDocs/py37venv/bin/python",
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": false,
+    "python.linting.pycodestyleEnabled": false,
+    "python.linting.pydocstyleEnabled": false,
+    "python.linting.banditEnabled": false
 }

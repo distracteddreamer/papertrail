@@ -38,6 +38,8 @@ class Batch:
         return tgt_mask
 ```
 
+The target sequence is input to the model and masked in such a way that the model is not allowed to cheat which would cause it to fail to train properly. An element of the output must depend only on the input and on any earlier elements of the output. We deal with the corner case of the first element of the target sequence by padding the start of the sequence with a constant `START` symbol. As the image shows, the target mask lets the model look at this element but because it is a constant symbol no information about the target is leaked this way.
 This is illustrated below for a single sequence where batch dimension is omitted for clarity:
 
 ![diagram-showing-source-target-masking]({{ site.baseurl }}/assets/Transformer_Notes/masking.png)
+ 
