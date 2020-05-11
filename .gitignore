@@ -3,4 +3,7 @@ _site
 .jekyll-metadata
 .idea
 _notebooks
-.*
+.mypy_cache*
+.sass-cache
+*.vscode
+*.ipynb_checkpoints
