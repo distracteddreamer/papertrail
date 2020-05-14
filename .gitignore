@@ -1,7 +1,7 @@
 _site
 .sass-cache
 .jekyll-metadata
-.idea
+# .idea
 _notebooks
 .mypy_cache*
 .sass-cache
