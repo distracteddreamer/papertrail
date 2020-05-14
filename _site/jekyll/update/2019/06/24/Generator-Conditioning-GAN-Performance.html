@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Generator Conditioning and GAN Performance</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-06-24T20:16:00+01:00" itemprop="datePublished">Jun 24, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on the paper <a href="https://arxiv.org/abs/1802.08768">Is Generator Conditioning Causally Related to GAN Performance?</a>. All mistakes are my own.</p>
+
+<h2 id="introduction">Introduction</h2>
+<ul>
+  <li>
+    <p>Jacobian of a GAN:</p>
+
+    <script type="math/tex; mode=display">J_z = \frac{\partial G(\mathbf{z})}{\partial \mathbf{z}}</script>
+  </li>
+  <li>Metric tensor of a GAN: $M_z = J_z^TJ_z$</li>
+  <li>$M_z$ is a Riemannian metric (*).</li>
+</ul>
+
+<h2 id="condition-number">Condition number</h2>
+<ul>
+  <li>Say you move from a point in the latent space $\mathbf{z} \in \mathcal{Z}$ along an eigenvectors of the metric tensor $M_z$ for a GAN.</li>
+  <li>
+    <p>If this corresponds to a large eigenvalue then a small step in the latent space will lead to a large difference in the output i.e. $G(\mathbf{z} + \epsilon\mathbf{v}_k)$ for a small $\epsilon$:</p>
+
+    <script type="math/tex; mode=display">lim_{||\epsilon||\rightarrow 0}\frac{||G(\mathbf{z}) - G(\mathbf{z} + \epsilon\mathbf{v}_k)||}{||\epsilon\mathbf{v}_k||} = \sqrt{\lambda_k}</script>
+  </li>
+  <li>Since hard to study spectrum of $M_z$ instead study condition number: ${\lambda_{\max}}/{\lambda_{\min}}$ - low means well-conditioned, high means poorly conditioned.</li>
+  <li>Eigenvalues of $M_z$ are squared singular values of $J_z$.</li>
+  <li>Plotting the average log condition number for fixed batch of latent vectors z for different random initialisations results in roughly half-models becoming more poor-conditioned and the other half becoming more well-conditioned.</li>
+  <li>Log spectrum of average Jacobian for a batch also varies a lot for a GAN across different random initialisations compared to a VAE.</li>
+</ul>
+
+<h2 id="correspondence-with-metrics">Correspondence with metrics</h2>
+<ul>
+  <li>A high Inception Score and Frechet Inception distance (FID) imply that the GAN is performing well.</li>
+  <li>When the condition number is high, the score is high and the distance is low</li>
+  <li>In fact for one run when the condition number is low at first, then goes up after a while, these scores behave in a similar way</li>
+  <li>For larger datasets similar correspondence exists but failure modes are more dramatic</li>
+  <li>Surprising because the “Inception” metrics are from a pre-trained classifier whilst the condition number depends only on the GAN parameters.</li>
+  <li>They take 360 samples for each of the randomly initialised models and predict the classes for these using the MNIST classifier used to the get the “Inception” metrics.</li>
+  <li>It turns out that for well-conditioned GANs the distribution of scores is close to uniform whilst some classes are entirely missing for poorly conditioned ones suggestive of missing modes.</li>
+</ul>
+
+<h2 id="jacobian-clamping">Jacobian clamping</h2>
+<ul>
+  <li>Sample a mini-batch from $p_z$</li>
+  <li>Make a second mini-batch by adding pertubations of size governed by $\epsilon$ (a hyperparameter)</li>
+  <li>Take the ratio of the difference in outputs between the batches to the difference in inputs</li>
+  <li>The model is penalised if  the loss does not lie between a pair of hyperparameters $\lambda_{\min}$ and $\lambda_{\max}$</li>
+  <li>While this doesn’t directly control condition number it uses the idea that for ill-conditioned metric tensors the ratio of differences in outputs to inputs is large.</li>
+  <li>Jacobian clamping improves condition number as well as the other metrics.</li>
+  <li><strong>The fact that clamping improves these other metrics is evidence for a causal relationship between generator conditioning and model performance (as judged by the metrics)</strong></li>
+  <li>Clamping also pushes together the log spectra.</li>
+  <li>One notable aspect of the clamping method is how it comes bundled with a method to set hyperparameters:
+    <ul>
+      <li>The model is run several times as above with different random initialisations.</li>
+      <li>Then $\lambda_{\min}$ and $\lambda_{\max}$ can be chosen based on the rato $Q$ of the difference between $G(z)$ and $G(z’)$ to the difference in inputs $z$ and $z’$ where $z’$ is a perturbed version of $z$ as described above.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="impact-on-state-of-the-art-models">Impact on state of the art models</h2>
+<ul>
+  <li>They were able to train a conditional GAN with gradient penalty faster (with only 1 rather than 5 discriminator updates per generator update) using Jacobian clamping with only a small drop in the inception score (which might be because no hyperparameter tuning was done).</li>
+</ul>
+
+<h1 id="-what-is-a-riemannian-metric">(*) What is a Riemannian metric?</h1>
+<ul>
+  <li>
+    <p>According to Wikipedia it is a family of positive definite inner products of the form:</p>
+
+    <script type="math/tex; mode=display">g_x: T_xM \times T_xM \rightarrow \mathbb{R}, x \in M</script>
+  </li>
+  <li>
+    <p>The entry also tells us that in a system of local coordinates on $M$ given by $n$ real-valued functions $\mathbf{z}^1, \mathbf{z}^2, \ldots, \mathbf{z}^n$, the vector fields</p>
+  </li>
+</ul>
+
+<script type="math/tex; mode=display">\left \{ \frac{\partial}{\partial z^1}\cdots\frac{\partial}{\partial z^n}\right \}</script>
+
+<p>        give a basis of tangent vectors at each point $x \in M$</p>
+
+<p>        (I have changed the notation slightly from Wikipedia to make it similar to the GAN notation).</p>
+
+<ul>
+  <li>To be a Riemannian metric $g_x$ must satisfy the following properties for all pairs $u, v \in T_xM$:
+    <ul>
+      <li>$g(u,v) = g(v,u)$</li>
+      <li>$g(u,u) \geq 0$</li>
+      <li>$g(u,u) = 0$ if and only if $u=0$</li>
+    </ul>
+  </li>
+  <li>Informally we see how this applies to $M_z = J_z^TJ_z$.</li>
+  <li>The columns of $J_z$</li>
+</ul>
+
+<script type="math/tex; mode=display">J_z = \left[\frac{\partial G(z)}{\partial z_1} ... \frac{\partial G(z)}{\partial z_{n_z}} \right]</script>
+
+<ul>
+  <li>These give a basis of tangent vectors at the point $x = G(z)$</li>
+  <li>
+    <p>The elements of the metric tensor are simply dot products of the tangent vectors</p>
+
+    <script type="math/tex; mode=display">M_{z,ij} = (J_z^TJ_z)_{ij} = \sum_l^{n_x} \frac{\partial G(z)_l}{\partial z_i} \frac{\partial G(z)_l}{\partial z_j} = \frac{\partial G(z)}{\partial z_i} \cdot \frac{\partial G(z)}{\partial z_j}</script>
+  </li>
+  <li>Since $M_z$ is an $n_z \times n_z$ matrix of real values of it has a real value for every pair in the Cartesian product of the tangent vectors i.e. every $\left(\frac{\partial G(z)}{\partial z_i}, \frac{\partial G(z)}{\partial z_j}\right)$, as required for a Riemannian metric.</li>
+  <li>Then because $M_z$  positive definite, we can see it satisfies the properties noted above:
+    <ul>
+      <li>$M_{z,ij} = M_{z,ji}$</li>
+      <li>$M_{z,ii} = J_{z,i} \cdot J_{z,i} = \lVert J_{z,i}\rVert^2 \geq 0$</li>
+      <li>As $\lVert J_{z,i}\rVert^2$ is the squared length of the vector it is 0 if and only if $J_{z,i}$ is the zero vector.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="topics">Topics</h2>
+
+<h1 id="ml">ML</h1>
+<p>GAN, Inception score, Frechet Inception distance</p>
+<h1 id="maths">Maths</h1>
+<p>Jacobian, eigenvalues, eigenvectors, Riemannian metric</p>
+
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/06/24/Generator-Conditioning-GAN-Performance.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

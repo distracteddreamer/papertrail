@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Degree of the Characteristic Polynomial</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-07-14T11:51:32+01:00" itemprop="datePublished">Jul 14, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>We would like to show that $p_A(\lambda) = \lvert A - \lambda I_n\rvert$ is a polynomial of degree $n$ in $\lambda$.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="n">sns</span>
+<span class="kn">import</span> <span class="nn">sympy</span> <span class="k">as</span> <span class="n">sy</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+</code></pre></div></div>
+
+<p>Some functions to plot a matrix</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_mat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">annot</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> 
+                <span class="n">annot</span><span class="o">=</span><span class="n">annot</span><span class="p">,</span> 
+                <span class="n">annot_kws</span><span class="o">=</span><span class="p">{</span><span class="s">'fontsize'</span><span class="p">:</span><span class="mi">16</span><span class="p">,</span> <span class="s">'fontweight'</span><span class="p">:</span><span class="s">'bold'</span><span class="p">},</span> <span class="n">fmt</span> <span class="o">=</span> <span class="s">''</span><span class="p">,</span> 
+                <span class="n">xticklabels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                <span class="n">yticklabels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">cbar</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                <span class="n">square</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+<span class="k">def</span> <span class="nf">get_annot</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
+    <span class="n">annot</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">'str'</span><span class="p">)</span>
+    <span class="n">diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">annot</span><span class="p">)</span>
+    <span class="n">annot</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices_from</span><span class="p">(</span><span class="n">annot</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[(</span><span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">))</span> <span class="o">+</span> 
+                                          <span class="s">' - $</span><span class="err">\</span><span class="s">lambda$'</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">diag</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">annot</span>
+
+<span class="k">def</span> <span class="nf">submat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="n">A1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">A</span><span class="p">[:</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">j</span><span class="p">],</span> <span class="n">A</span><span class="p">[:</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">):]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">A2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">A</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):,</span> <span class="p">:</span><span class="n">j</span><span class="p">],</span> <span class="n">A</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):,</span> <span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">):]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">A1</span><span class="p">,</span> <span class="n">A2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">submat_sym</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="n">A1</span> <span class="o">=</span> <span class="n">A</span><span class="p">[:</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">row_join</span><span class="p">(</span><span class="n">A</span><span class="p">[:</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">):])</span>
+    <span class="n">A2</span> <span class="o">=</span> <span class="n">A</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):,</span> <span class="p">:</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">row_join</span><span class="p">(</span><span class="n">A</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):,</span> <span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">):])</span>
+    <span class="k">return</span> <span class="n">A1</span><span class="o">.</span><span class="n">col_join</span><span class="p">(</span><span class="n">A2</span><span class="p">)</span>
+
+
+</code></pre></div></div>
+
+<p>We would like to prove that the characteristic polynomial of a matrix has order $n$.</p>
+
+<p>Let us first note that we are concerned with $n \times n$ matrices for which:</p>
+<ul>
+  <li>There are no more than $n$ entries of the form $a - \lambda$ for a constant $a$</li>
+  <li>All other entries constant.</li>
+  <li>The $a - \lambda$ elements appear no more than once per column and per row.</li>
+</ul>
+
+<p>An $n \times n$ matrix such as the following random $5 x 5$ matrix with $\lambda$ subtracted from its diagonal entries, whose determinant is obtained to find its eigenvalues is such an example.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">27</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">annot</span> <span class="o">=</span> <span class="n">get_annot</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+<span class="n">plot_mat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">annot</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_5_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">A_sym</span> <span class="o">=</span> <span class="n">sy</span><span class="o">.</span><span class="n">Matrix</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">-</span> <span class="n">sy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s">'</span><span class="err">\</span><span class="s">lambda'</span><span class="p">)</span> <span class="o">*</span> <span class="n">sy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">A_sym</span>
+</code></pre></div></div>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\displaystyle \left[\begin{matrix}10 - \lambda & 13 & -3 & 8 & 1\\2 & - \lambda - 1 & 11 & -10 & 5\\-7 & -4 & - \lambda - 6 & 12 & 14\\4 & -9 & 0 & - \lambda - 8 & 7\\3 & -5 & 6 & -2 & 9 - \lambda\end{matrix}\right] %]]></script>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">A_sym</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>$\displaystyle - \lambda^{5} + 4 \lambda^{4} + 306 \lambda^{3} - 3679 \lambda^{2} + 5942 \lambda + 192420$</p>
+
+<p>The submatrix obtaining by omitting row $i$, column $j$ is another example. When $i = j$, there are exactly $n=4$ such entries.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_mat</span><span class="p">(</span><span class="n">submat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">submat</span><span class="p">(</span><span class="n">annot</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_9_0.png" alt="png" /></p>
+
+<p>When $i \neq j$ there are strictly fewer than $n=4$ entries.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">submat_sym</span><span class="p">(</span><span class="n">A_sym</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\displaystyle \left[\begin{matrix}10 - \lambda & -3 & 8 & 1\\-7 & - \lambda - 6 & 12 & 14\\4 & 0 & - \lambda - 8 & 7\\3 & 6 & -2 & 9 - \lambda\end{matrix}\right] %]]></script>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">submat_sym</span><span class="p">(</span><span class="n">A_sym</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>$\displaystyle \lambda^{4} - 5 \lambda^{3} - 254 \lambda^{2} + 183 \lambda + 22302$</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_mat</span><span class="p">(</span><span class="n">submat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">submat</span><span class="p">(</span><span class="n">annot</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_13_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">submat_sym</span><span class="p">(</span><span class="n">A_sym</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\displaystyle \left[\begin{matrix}10 - \lambda & -3 & 8 & 1\\2 & 11 & -10 & 5\\-7 & - \lambda - 6 & 12 & 14\\3 & 6 & -2 & 9 - \lambda\end{matrix}\right] %]]></script>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">submat_sym</span><span class="p">(</span><span class="n">A_sym</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>$\displaystyle - 10 \lambda^{3} + 268 \lambda^{2} - 1716 \lambda + 1206$</p>
+
+<p>The proof is by induction:</p>
+<ul>
+  <li>First note that we will only be concerned with matrices as described above i.e. no more than one $a - \lambda$  type term for every column and row.</li>
+  <li>We prove a more general case that for such a matrix:
+    <ul>
+      <li>If it has $n$ $a - \lambda$ type entries, the determinant is degree $n$ in $\lambda$.</li>
+      <li>If degree $n$ in $\lambda$, then coeffient of $\lambda^n$ in the polynomial is $\pm1$</li>
+      <li>If fewer than $n$ such entries the degree is $&lt; n$.</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>Base case</strong></p>
+<ul>
+  <li>Note that for a $1 \times 1$ matrix which is a scalar, the determinant is degree $1$ in $\lambda$ if the scalar is of the form $a - \lambda$</li>
+  <li>So for the base case $p_A(\lambda)$ is degree $n=1$ with coefficient $-1$ if there are $n$ such entries else it is degree $&lt;n$.</li>
+</ul>
+
+<p><strong>Induction step</strong></p>
+<ul>
+  <li>Assume it is true for a $k \times k$ matrix:
+    <ol>
+      <li>Consider a $k + 1 \times k + 1$ matrix with $k + 1$ such entries.
+        <ul>
+          <li>All rows will have an $a - \lambda$  term.</li>
+          <li>Take the determinant with respect to row 1.</li>
+          <li>Suppose row 1 has such an entry at position $t$</li>
+          <li>If you eliminate row 1, column $t$ the resulting submatrix will have $k$ such entries since the remaining entries will have to occur in other columns and rows due to the restriction of no more than one such entry per column and row.</li>
+          <li>But all other submatrices</li>
+          <li>So the determinant of that submatrix will a polynomial of degree $k$.</li>
+          <li>Since $A_{1t}$ is a polynomial degree $1$, $A_{1t}$  times that will be a polynomial of degree $k + 1$.</li>
+          <li>This term alone will contain $\lambda^{k + 1}$ since all other submatrix determinants will be polynomials of degree less than $k$</li>
+          <li>Assuming that the coefficient of $\lambda^k$ the determinant polynomial is $\pm1$ since now it will be multiplied by $a - \lambda$ the coefficient of $\lambda^{k+1}$ will remain $\pm1$</li>
+        </ul>
+      </li>
+    </ol>
+  </li>
+</ul>
+
+<h1 id="case-1">Case 1</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">shuffle</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">A_perm</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">shuffle</span><span class="p">]</span>
+<span class="n">annot_perm</span> <span class="o">=</span> <span class="n">annot</span><span class="p">[</span><span class="n">shuffle</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_mat</span><span class="p">(</span><span class="n">A_perm</span><span class="p">,</span> <span class="n">annot_perm</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_19_0.png" alt="png" /></p>
+
+<p>coefficient = -1, degree = 5</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">A_perm_sym</span> <span class="o">=</span> <span class="n">A_sym</span><span class="p">[</span><span class="n">shuffle</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">A_perm_sym</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>$\displaystyle - \lambda^{5} + 4 \lambda^{4} + 306 \lambda^{3} - 3679 \lambda^{2} + 5942 \lambda + 192420$</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_mat</span><span class="p">(</span><span class="n">submat</span><span class="p">(</span><span class="n">A_perm</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">submat</span><span class="p">(</span><span class="n">annot_perm</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_22_0.png" alt="png" /></p>
+
+<p>coefficient = 1, degree = 4</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">submat_sym</span><span class="p">(</span><span class="n">A_perm_sym</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>$\displaystyle \lambda^{4} - 10 \lambda^{3} - 185 \lambda^{2} + 2326 \lambda - 6840$</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_mat</span><span class="p">(</span><span class="n">submat</span><span class="p">(</span><span class="n">A_perm</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">submat</span><span class="p">(</span><span class="n">annot_perm</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_25_0.png" alt="png" /></p>
+
+<p>degree &lt; 4</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">submat_sym</span><span class="p">(</span><span class="n">A_perm_sym</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>$\displaystyle 10 \lambda^{3} - 268 \lambda^{2} + 1716 \lambda - 1206$</p>
+
+<ol>
+  <li>Consider the other case of a $k + 1 \times k + 1$ matrix with $p &lt; k + 1$ such entries.
+    <ul>
+      <li>Then at least one row of $A$ does not have an $a - \lambda$ term.</li>
+      <li>Let us take the determinant with respect to this row which means each submatrix determinant will multiplied by a constant</li>
+      <li>Each submatrix has $p$ or fewer $a - \lambda$ terms/</li>
+      <li>If the submatrix has $p$ $a - \lambda$ terms, its determinant is degree $p$ otherwise its determinant is degree less than $p$ (by the induction assumption).</li>
+      <li>Since in the determinant sum each submatrix determinant will be multiplied by a constant its degree will not change.</li>
+      <li>So the determinant of the $k + 1 \times k + 1$ matrix will be a sum of polynomials of degree $p &lt; k + 1$ and thus will be of degree strictly less than $k +1$</li>
+    </ul>
+  </li>
+</ol>
+
+<p>This completes the proof. The characteristic polynomial is a special case of such a matrix where all the $n$ diagonal entries are of the form $a - \lambda$ so it is a polynomial of degree $n$ with $\lambda^n$ having a coefficient $\pm1$.</p>
+
+<h1 id="case-2">Case 2</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">A_skip31</span> <span class="o">=</span> <span class="n">submat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">A_skip31_sym</span> <span class="o">=</span> <span class="n">submat_sym</span><span class="p">(</span><span class="n">A_sym</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">annot_skip31</span> <span class="o">=</span> <span class="n">submat</span><span class="p">(</span><span class="n">annot</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_mat</span><span class="p">(</span><span class="n">A_skip31</span><span class="p">,</span> <span class="n">annot_skip31</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_31_0.png" alt="png" /></p>
+
+<p>degree &lt; 4</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">A_skip31_sym</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>$\displaystyle - 10 \lambda^{3} + 268 \lambda^{2} - 1716 \lambda + 1206$</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">A_skip31_skip12</span> <span class="o">=</span> <span class="n">submat</span><span class="p">(</span><span class="n">A_skip31</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">A_skip31_skip12_sym</span> <span class="o">=</span> <span class="n">submat_sym</span><span class="p">(</span><span class="n">A_skip31_sym</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">annot_skip31_skip12</span> <span class="o">=</span> <span class="n">submat</span><span class="p">(</span><span class="n">annot_skip31</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_mat</span><span class="p">(</span><span class="n">A_skip31_skip12</span><span class="p">,</span> <span class="n">annot_skip31_skip12</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_35_0.png" alt="png" /></p>
+
+<p>coefficient = -1, degree = 3</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">A_skip31_skip12_sym</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>$\displaystyle 108 \lambda + \left(9 - \lambda\right) \left(10 - \lambda\right) \left(- \lambda - 6\right) - 1179$</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">A_skip31_skip33</span> <span class="o">=</span> <span class="n">submat</span><span class="p">(</span><span class="n">A_skip31</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">A_skip31_skip33_sym</span> <span class="o">=</span> <span class="n">submat_sym</span><span class="p">(</span><span class="n">A_skip31_sym</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">annot_skip31_skip33</span> <span class="o">=</span> <span class="n">submat</span><span class="p">(</span><span class="n">annot_skip31</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_mat</span><span class="p">(</span><span class="n">A_skip31_skip33</span><span class="p">,</span> <span class="n">annot_skip31_skip33</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Degree_of_the_Characteristic_Polynomial_files/Degree_of_the_Characteristic_Polynomial_39_0.png" alt="png" /></p>
+
+<p>degree &lt; 3</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sy</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">A_skip31_skip33_sym</span><span class="p">)</span> 
+</code></pre></div></div>
+
+<p>$\displaystyle - 148 \lambda - \left(- \lambda - 6\right) \left(10 \lambda - 100\right) + 1702$</p>
+
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/07/14/Degree_of_the_Characteristic_Polynomial.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

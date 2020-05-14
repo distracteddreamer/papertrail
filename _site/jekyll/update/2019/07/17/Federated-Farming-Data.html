@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Federated Farming, Part 1 - Data</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-07-17T12:51:32+01:00" itemprop="datePublished">Jul 17, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on implementing the federated learning approach presented in <a href="https://arxiv.org/abs/1602.05629v3">Communication-Efficient Learning of Deep Networks from Decentralized Data</a>. You can find all the code <a href="https://github.com/distracteddreamer/fedfarm">here</a>. All mistakes are my own.</p>
+
+<h2 id="introduction">Introduction</h2>
+<p>I came across the Kaggle plant seedlings dataset some time back and thought it would be interesting to try to some classification models on it. But when I came back to it I found that people had already managed to get 100% accuracy on the leaderboard (it is rather a small dataset of less than 5000 training images so I can imagine this is possible). However I had recently been reading about federated learning and thought that this would be a suitable dataset to try some federated learning experiments since like MNIST it is essentially a solved problem so it is interesting to find out how well it does with significant constraints.</p>
+
+<p>In federated learning data small models are trained on subsets of the data which are not representative of the data distribution and the gradients are aggregated to update a global model. Since we are dealing with agricultural data - of a sort, I have titled my notes Federated Farming.</p>
+
+<h2 id="data-processing">Data processing</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+</code></pre></div></div>
+
+<p>The filenames have the plant names so let us create a dataframe mapping the category to a numeric class label.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">files</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s">'../fedfarm/train/*/*png'</span><span class="p">))</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'/'</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+<span class="n">names</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+<span class="n">label_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'category'</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span> <span class="s">'label'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))})</span>
+<span class="n">label_df</span>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>category</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Black-grass</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Charlock</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Cleavers</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Common Chickweed</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Common wheat</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>Fat Hen</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Loose Silky-bent</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>Maize</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>Scentless Mayweed</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>Shepherds Purse</td>
+      <td>9</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>Small-flowered Cranesbill</td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>Sugar beet</td>
+      <td>11</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Let us look at the data distribution. For complete fairness we should do this for a training set only but as we are going to make a random split the distribution will be the same for training and validation.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">files_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'filename'</span><span class="p">:</span> <span class="n">files</span><span class="p">,</span> <span class="s">'category'</span><span class="p">:</span> <span class="n">labels</span><span class="p">})</span>
+<span class="n">files_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">files_df</span><span class="p">,</span> <span class="n">label_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s">'category'</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s">'left'</span><span class="p">)</span>
+<span class="n">files_df</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Loose Silky-bent             654
+Common Chickweed             611
+Scentless Mayweed            516
+Small-flowered Cranesbill    496
+Fat Hen                      475
+Charlock                     390
+Sugar beet                   385
+Cleavers                     287
+Black-grass                  263
+Shepherds Purse              231
+Maize                        221
+Common wheat                 221
+Name: category, dtype: int64
+</code></pre></div></div>
+
+<p>The dataset is unbalanced but not massively.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">12</span><span class="p">),</span> <span class="n">files_df</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">12</span><span class="p">));</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">files_df</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">'Frequency'</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Federated_Farming-EDA/output_6_0.png" alt="png" /></p>
+
+<p>Let us look at some of the images.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_figheight</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_figwidth</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">files_df</span><span class="p">[</span><span class="n">files_df</span><span class="o">.</span><span class="n">category</span> <span class="o">==</span> <span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Federated_Farming-EDA/output_8_0.png" alt="png" /></p>
+
+<p>Here we taken 4000 examples for training, keeping the rest for validation and divided these into 10 shards each with 400 examples. In contrast to the original paper these would not be iid shards since the dataset (unlike MNIST) is unbalanced so it is more accurate to describe the shards as representative of the class distribution rather than IID (although I have named the columns iid/non-iid to keep in line with the paper).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">train</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="mi">4750</span><span class="p">),</span> <span class="p">[</span><span class="mi">4000</span><span class="p">])</span>
+<span class="n">train_df</span> <span class="o">=</span> <span class="n">files_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s">'category'</span><span class="p">)</span>
+<span class="n">val_df</span> <span class="o">=</span> <span class="n">files_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">val</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">n_shards</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">shards_iid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_shards</span><span class="p">),</span> <span class="mi">400</span><span class="p">))</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">shards_iid</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>4000
+</code></pre></div></div>
+
+<p>For the non-iid shards, to place images in shards so that just a few classes are in each shard, each shard indices are repeated to get a pair of arrays per shard of length 200. Then the arrays are shuffled resulting in 20 arrays, concatenated and assigned to the examples which have been sorted.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># [[0, ..., 0], ..., [9, ..., 9], [0, ..., 0], ..., [9, ..., 9]]
+</span><span class="n">shards_non_iid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_shards</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">]),</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">shards_non_iid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">shards_non_iid</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">train_df</span><span class="p">[</span><span class="s">'shard_iid'</span><span class="p">]</span> <span class="o">=</span> <span class="n">shards_iid</span>
+<span class="n">train_df</span><span class="p">[</span><span class="s">'shard_non_iid'</span><span class="p">]</span> <span class="o">=</span> <span class="n">shards_non_iid</span>
+</code></pre></div></div>
+
+<p>Only a few classes per non_iid shard which leads to class distributions in each shard that are very different from the data distribution.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">train_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'shard_non_iid'</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s">'category'</span><span class="p">:</span> <span class="s">'num_categories'</span><span class="p">})</span>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>shard_non_iid</th>
+      <th>num_categories</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>3</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>4</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>5</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>6</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>7</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>8</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>9</td>
+      <td>4</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">td</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'train_resized.csv'</span><span class="p">)</span>
+<span class="n">groups</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'shard_non_iid'</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span>
+</code></pre></div></div>
+
+<p>These shards are not evenly balanced either for the most part.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">v</span><span class="p">])</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+     <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s">'index'</span><span class="p">:</span> <span class="s">'label'</span><span class="p">,</span> <span class="s">'label'</span><span class="p">:</span> <span class="s">'count'</span><span class="p">}))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'shard'</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'label {}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="s">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="s">'{:3d}'</span><span class="o">.</span><span class="nb">format</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="p">)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'count {}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="s">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="s">'{:3d}'</span><span class="o">.</span><span class="nb">format</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'count'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="p">)))</span>
+    <span class="k">print</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>shard 0
+label   6  10   9
+count 200 128  72
+
+shard 1
+label   0   6   5
+count 200 101  99
+
+shard 2
+label   3   7   6
+count 200 149  51
+
+shard 3
+label  10   8
+count 200 200
+
+shard 4
+label   5   2   3
+count 200 183  17
+
+shard 5
+label  11   3   4  10
+count 121 111  89  79
+
+shard 6
+label   1   2   0
+count 330  57  13
+
+shard 7
+label   6   3
+count 200 200
+
+shard 8
+label  11   8   7
+count 200 163  37
+
+shard 9
+label   9   4   5   8
+count 122 101  99  78
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>label</th>
+      <th>count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>9</td>
+      <td>122</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>4</td>
+      <td>101</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>5</td>
+      <td>99</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>8</td>
+      <td>78</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">train_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'shard_iid'</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s">'category'</span><span class="p">:</span> <span class="s">'num_categories'</span><span class="p">})</span>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>shard_iid</th>
+      <th>num_categories</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>3</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>4</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>5</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>6</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>7</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>8</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>9</td>
+      <td>12</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>4750
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">heights</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">files</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<h1 id="input-pipeline">Input pipeline</h1>
+
+<p>The image dimensions vary quite a lot but the aspect ratio is 1:1 for almost all of them. I resized all the images to be $256 \times 256$.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Federated_Farming-EDA/output_29_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Federated_Farming-EDA/output_30_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="n">aspect_ratio_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+<span class="n">aspect_ratio_counts</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[(1.0, 3937),
+ (1.0600315955766193, 13),
+ (0.9129353233830846, 3),
+ (0.9994853319608852, 3),
+ (0.9547244094488189, 3),
+ (0.9, 2),
+ (0.9413886384129847, 2),
+ (0.9990059642147118, 1),
+ (0.9992972593113141, 1),
+ (1.0454545454545454, 1)]
+</code></pre></div></div>
+
+<p>A few images seem to be in the RGBA format so we will explicitly select only the first 3 channels when loading in the data.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">channel_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span>
+<span class="n">channel_counts</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Counter({3: 3978, 4: 22})
+</code></pre></div></div>
+
+<p>Visual inspection suggests that the quality does not seem to be affected too much by resizing.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">resized_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'train_resized.csv'</span><span class="p">)</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">32</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">resized_df</span><span class="p">[</span><span class="n">resized_df</span><span class="o">.</span><span class="n">category</span> <span class="o">==</span> <span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">fns</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">'train_256x256x3'</span><span class="p">,</span> <span class="s">'train'</span><span class="p">),</span> <span class="n">f</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">jj</span><span class="p">,</span> <span class="n">fn</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">),</span> <span class="n">fns</span><span class="p">):</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s">' '</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Federated_Farming-EDA/output_35_0.png" alt="png" /></p>
+
+<h1 id="part-2">Part 2</h1>
+
+<p>In the <a href="/papertrail/jekyll/update/2019/07/17/Federated-Farming-Model.html">next part</a> we will try training some federated learning models.</p>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/07/17/Federated-Farming-Data.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">[WIP] Word2Vec</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-04-09T09:32:00+01:00" itemprop="datePublished">Apr 9, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Thanks to some very striking results, everyone knows about Word2Vec but the methods behind it are quite complex and subtle. In these post I will focus on the technical details since there are plenty of sources to give you intuition.</p>
+
+<h2 id="data">Data</h2>
+<p>The data consists of words and their neighbourhoods. Here is a sentence from <em>Emma</em> by Jane Austen:</p>
+
+<p>“Emma’s very good opinion of Frank Churchill was <em>a little <strong>shaken</strong> the following</em> day, by hearing that he was gone off to London, merely to have his hair cut.”</p>
+
+<p>The centre word is <em>shaken</em> and its neighbourbood of distance 2 in each direction consists of [“a”, “little”, “the”, “following”]</p>
+
+<h2 id="model">Model</h2>
+<ul>
+  <li>The parameters that the model learns are <script type="math/tex">V</script> <script type="math/tex">M</script>-dimensional vectors, each serving as a feature for a vocabulary of <script type="math/tex">V</script> words.</li>
+  <li>Actually we have 2 * <script type="math/tex">V</script> such vectors: we have matrix of $U \in \mathcal{R}^{V \times M}$ of input word vectors and a matrix $W \in \mathcal{R}^{V \times M}$ output word vectors.</li>
+  <li>One represents the word when it is the centre word and the other when it is the context word.</li>
+  <li>The model tries to learn vectors such that a conditional probably distribution over the words is maximised.</li>
+  <li>There are two popular approaches, CBOW and Skip-gram</li>
+</ul>
+
+<h2 id="notation">Notation</h2>
+<ul>
+  <li>Let us denote the centre word vectors as <script type="math/tex">u</script>, the surrounding word vectors as <script type="math/tex">w</script></li>
+  <li>The context of word $i$ is the set of words $C_i$</li>
+  <li>The vocabulary is the set of all the words use to train the model, $V$, for all of which vectors are learned</li>
+</ul>
+
+<h2 id="cbow">CBOW</h2>
+<ul>
+  <li>Here we would like to maximise P(word | context)</li>
+  <li>The way we would represent it is by averaging the vectors for [“a”, “little”, “the”, “following”] and try to make it be close to the vector for “shaken”</li>
+  <li>Focus on the $i-th$ word $c-th$ context words, ${c \in C_i}$, where $C_i$ is the context of the word.</li>
+  <li>First we select the input word vector as the $i-th$ row of $U$ (as per the above shape of $U$, which could of course be transposed or represented differently but the point is that we select the $M$ elements of $U$ that correspond to the input word vector for word $i$).</li>
+  <li>Similarly we select the $c$-th rows of $W$, where ${c \in C_i}$, to get the output word vectors for the context.</li>
+  <li>
+    <p>We find the dot product of each of the words in the vocabulary to the average context vector and the softmax of this is interpreted as P(word | context)</p>
+
+    <script type="math/tex; mode=display">\hat{w}_c = \frac{1}{|C_i|}\sum_{c \in C_i}w_c</script>
+
+    <script type="math/tex; mode=display">\hat{y} = P(\text{word} = i| \text{context} = C_i) = P(u_i|\{w_c: c \in C_i\}) = \frac{\exp(u_i^T\hat{w}_c)}{\sum_{v \in V} \exp(u_v^T\hat{w}_c)}</script>
+  </li>
+  <li>
+    <p>The loss function is the cross entropy loss $H(y, \hat{y})$ where y is a one-hot probability such that $y_i = 1, y_{j \ne i}=0$, so we have <strong>for word $i$</strong>:</p>
+
+    <script type="math/tex; mode=display">H(y, \hat{y}) = -\sum_{i=1}^V y_i \log \hat{y}\_i = -y_i \log \hat{y}_i\\
+ = -u_i^T\hat{w}_c + \log\sum_{v \in V} \exp(u_v^T\hat{w}_c)</script>
+  </li>
+  <li>Minimising this loss will increase the dot product between $u_i^T\hat{w}_c $ and decrease those of $\hat{w}_c$ with the other word vectors and thereby increase the probability of word $i$ given $C_i$ relative to other words.</li>
+</ul>
+
+<h2 id="skip-gram">Skip-gram</h2>
+<ul>
+  <li>In this case we’d like to maximise P(context | word)</li>
+  <li>
+    <p>But this time the probability is approximated via Naive Bayes where it is assumed that give the centre words the probability of the surrounding words are indepedent of each other</p>
+
+    <script type="math/tex; mode=display">P(\{u_c: c \in C_i\}|w_i) = \prod_{c \in C_i} P(u_c | w_i)</script>
+  </li>
+  <li>The goal is again to make the surrounding word vectors similar to the centre but this time by making the “centre version” of the context vectors similar to “surrounding version” of the centre</li>
+  <li>We still use a softmax probability but here for each surrounding vector we find the softmax over all the centre word vectors
+ake
+  <script type="math/tex">P(\{u_c: c \in C_i\}|w_i) = \prod_{c \in C_i}\frac{\exp(u_c^Tw_i)}{\sum_{v \in V} \exp(u_v^Tw_i)}</script></li>
+</ul>
+
+<h2 id="negative-sampling">Negative sampling</h2>
+<ul>
+  <li>Straight away we can see an issue with these formulations - the need to sum across all words in the vocabulary in the denominator.</li>
+  <li>The solution is to adopt a method called <strong>negative sampling</strong> variants of which have found favour in other areas in ML such as self-superivised learning in computer vision.</li>
+  <li>
+    <p>Consider the first pair of words which plausibly and do in fact come from Jane Austen versus the second which is  from Shakespeare</p>
+
+    <blockquote>
+      <p><strong>true elegance</strong></p>
+
+      <p>– <cite>EMMA, Jane Austen</cite></p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>true avouch</strong></p>
+
+      <p>– <cite>HAMLET, William Shakespeare</cite></p>
+    </blockquote>
+  </li>
+  <li>Let us say we have many such pairs, some from works by Jane Austen and the rest from other texts and for each we predict the probability that it was from Jane Austen</li>
+  <li>Let $\mathcal{J} \in {0, 1}$ be an indicator variable that equals 1 if the pair is from Jane Austen and 0 otherwise,.</li>
+  <li>The probability that pair $(w, c)$ is from Jane Austen is given as $P(\mathcal{J}=1\vert w,c)$.</li>
+  <li>If it is not from Jane Austen then it is from some other text so the probability it is from some other text is  $P(\mathcal{J}=0\vert w,c) = 1 - P(\mathcal{J}=1\vert w,c)$</li>
+  <li>The probability is expressed as follows</li>
+</ul>
+
+<script type="math/tex; mode=display">P(\mathcal{J}=1\vert w,c) = \text{sigmoid}(u_w^Tw_c) = \frac{1}{1 + \exp(-u_w^Tw_c)}</script>
+
+<ul>
+  <li>We would like optimise $P(\mathcal{J}=1\vert w,c)$ for pairs from Jane Austen and $P(\mathcal{J}=0\vert w,c)$ for pairs not from Jane Austen.</li>
+  <li>That is we want to find parameters $\theta$ that optimise the maximise the probability that pairs that appear in the corpus (here Jane Austen’s writings) are in the corpus and the probability that those that don’t appear in that corpus are not in the corpus.</li>
+  <li>The equation as given in these <a href="http://web.stanford.edu/class/cs224n/readings/cs224n-2019-notes01-wordvecs1.pdf">notes</a> is shown annotated below:</li>
+</ul>
+
+<p><img src="/papertrail/assets/Word2Vec/neg_sampling.png" alt="png" /></p>
+
+<h2 id="negative-corpus">Negative corpus</h2>
+<ul>
+  <li>We sample from the distribution that results from raising the word frequencies in the corpus to the power of $3/4$.</li>
+  <li>The order of the weights does not change since $p^{3/4}$ is an increasing function of p for the range $[0, 1]$ but their relative sizes do.</li>
+  <li>
+    <p>These <a href="http://web.stanford.edu/class/cs224n/readings/cs224n-2019-notes01-wordvecs1.pdf">notes</a> give the following example of the resulting weights 
+        is: 0.90 -&gt; 0.825048</p>
+
+    <p>      Constitution: 0.09 -&gt; 0.146717</p>
+
+    <p>      bombastic: 0.01 -&gt; 0.028236</p>
+  </li>
+  <li>
+    <p>They remark that</p>
+
+    <blockquote>
+      <p>“Bombastic” is now 3x more likely to be sampled while “is” onlywent up marginally.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>However the resulting weights are not normalized so actually would it not be as follows:</p>
+
+    <p>      is: 0.90 -&gt; 0.83</p>
+
+    <p>      Constitution: 0.09 -&gt; 0.15</p>
+
+    <p>      bombastic: 0.01 -&gt; 0.03</p>
+  </li>
+  <li>But the point is that less probable words are more likely to occur in the noise corpus</li>
+  <li>Basically the ratio of the noise to real probabilities is proportional to $\frac{p^{3/4}}{p} = p^{-1/4}$ which decreases as p increases towards 1.</li>
+  <li>Thus that the words that were more frequent originally become relatively less frequent compared to those who were more</li>
+</ul>
+
+<h2 id="negative-sampling-in-practice">Negative sampling in practice</h2>
+<ul>
+  <li>
+    <p>Here is our example phrase again:</p>
+
+    <blockquote>
+      <p><em>a little <strong>shaken</strong> the following</em></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>For <strong>CBOW</strong> Swap the centre word vector $u_i$ with the vector for the vector for some other word $u_j$ sampled from the negative corpus e.g.</p>
+
+    <blockquote>
+      <p><em>a little <strong>merely</strong> the following</em></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>For <strong>skip-gram</strong> swap the vector for each context word $u_c$ with some other word $u_k$  sampled from the negative corpus e.g.</p>
+
+    <blockquote>
+      <p><em>of foppery <strong>shaken</strong> joint they</em></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Note that the noise words in above were sampled from a mini-corpus of a few paragraphs from <em>Emma</em>.</p>
+  </li>
+</ul>
+
+<!-- ## Negative sampling applied to CBOW and Skip-gram
+-- [TODO: add annotations of the following:
+- General loss function 
+- Original and modified loss functions for each
+- Roughly speaking, for both CBOW and skip-gram there are two parts to the loss - that pushes up the probability that true pairs co-occur in the dataset and the other which pushes down the probability that that noise pairs don't co-occur. 
+- Each is now replaced with an analogous term based on the negative sampling approach 
+-- Annotate as "roughly" 
+]  -->
+
+<h2 id="whats-left">What’s left</h2>
+<!-- - More details on the equations for
+    - The two methods
+    - Negative sampling -->
+<ul>
+  <li>How to modify each method to use negative sampling</li>
+  <li>Extensions</li>
+</ul>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/04/09/Word2Vec.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

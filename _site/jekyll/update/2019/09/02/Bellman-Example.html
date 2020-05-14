@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Bellman equations in vectorised form</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-09-02T11:51:32+01:00" itemprop="datePublished">Sep 2, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>In this post we will go through the steps for example 3.8 in Sutton and Barto.</p>
+
+<h3 id="theory">Theory</h3>
+
+<p>For Markov decision processes the value of a state $s$ under policy $\pi$ is given by</p>
+
+<script type="math/tex; mode=display">v_\pi(s) = \mathbb{E}_\pi[G_t \lvert S_t=s]=\mathbb{E}_\pi\left[\sum\limits_{k=0}^{\infty}\gamma^kR_{t + k + 1} \Bigg\vert S_t = s \right] \forall{s
+}\in \mathcal{S}\\</script>
+
+<script type="math/tex; mode=display">\mathbb{E}_\pi[R_{t+1}\lvert S_t=s]
+= \sum_{r} r\cdot p(R_{t+1} = r \vert S_t = s)\\
+= \sum_{s', r, a} r \cdot p(R_{t+1} = r, S_{t+1} = s' \vert A_t = a, S_t = s)\cdot \pi(A_t = a\vert S_t = s)</script>
+
+<script type="math/tex; mode=display">\mathbb{E}_\pi[G_{t+1}\lvert S_t=s]
+= \sum_{s', a} \mathbb{E}_\pi[G_{t+1} \lvert S_{t+1}=s', S_t = s] \cdot
+p(S_{t+1} = s' | S_t = s, A_t = a)\cdot \pi(A_t = a\vert S_t = s) \\= \sum_{s', a} \mathbb{E}_\pi[G_{t+1} \lvert S_{t+1}=s']\cdot p(S_{t+1} = s' | S_t = s, A_t = a)\cdot \pi(A_t = a\vert S_t = s)</script>
+
+<p>(since given $S_{t+1}$, $G_{t+1}$ does not depend on $S_t$)</p>
+
+<script type="math/tex; mode=display">=\sum_{s', r, a} v_\pi(s')\cdot p(R_{t+1} = r, S_{t+1}=s' \vert S_t = s, A_t = a)\cdot \pi(A_t = a\vert S_t = s)</script>
+
+<p>Thus we can write</p>
+
+<script type="math/tex; mode=display">v_\pi(s) = \mathbb{E}_\pi[R_{t+1} + \gamma G_{t+1} \lvert S_t=s]\\
+= \sum_a \pi(a\vert s) \sum_{s'}\sum_r p(s', r \vert s, a)\left[r + \gamma v_\pi(s')\right]</script>
+
+<h3 id="vectorised-form">Vectorised form</h3>
+
+<p>For $N$ discrete reward values, ${r_0, r_1, \ldots, r_N}$, define let be $\mathbf{r}$ a row vector where $\mathbf{r}_i = r_i$. Then assuming that $s = {0, 1, … ,\lvert\mathcal{S}\rvert-1}$ (which can be achieved by mapping each state to an index):</p>
+
+<script type="math/tex; mode=display">\sum_{a, s', r} r\cdot \pi(a\vert s) \sum_r p(s', r \vert s, a)= \sum_i r_i \sum_{a, s'} \pi(a\vert s) \cdot p(s', r_i \vert s, a) = (\mathbf{r}\mathbf{Q})_s</script>
+
+<script type="math/tex; mode=display">\mathbf{Q}_{is} = \sum_{a, s'} p(s', r_i \vert s, a) \cdot \pi(a\vert s)</script>
+
+<p>Similarly, with $\mathbf{v}$ as a row vector where $\mathbf{v}<em>{s’} = v</em>\pi(s’)$:</p>
+
+<script type="math/tex; mode=display">\sum_a \pi(a\vert s) \sum_{s'}\sum_r \gamma v_\pi(s')\cdot p(s', r \vert s, a)
+= \gamma\sum_{s'} v_\pi(s')\sum_{a, i} p(s', r_i \vert s, a) \cdot \pi(a\vert s) = \gamma(\mathbf{v} \mathbf{R})_s</script>
+
+<script type="math/tex; mode=display">\mathbf{R}_{s's} = \sum_{a, i} p(s', r_i \vert s, a) \cdot \pi(a\vert s)</script>
+
+<p>Putting this together</p>
+
+<script type="math/tex; mode=display">\mathbf{v} = \mathbf{r}\mathbf{Q} + \gamma\mathbf{v} \mathbf{R}</script>
+
+<p>Solving for $\mathbf{v}$:</p>
+
+<script type="math/tex; mode=display">\mathbf{v}(\mathbf{I} - \gamma\mathbf{R}) = \mathbf{r}\mathbf{Q} \implies \mathbf{v} = \mathbf{r}\mathbf{Q}(\mathbf{I} - \gamma\mathbf{R})^{-1}</script>
+
+<h3 id="simple-gridworld-application">Simple gridworld application</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+</code></pre></div></div>
+
+<p>The states are the cells of a 5 by 5 grid.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">h</span> <span class="o">=</span> <span class="n">w</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">h</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">w</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">25</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">state2ind</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">states</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">))))</span>
+</code></pre></div></div>
+
+<p>The actions are move one cell up, down, left or right and each has equal probability for all states. Hence $\pi(a \vert s)$ can be represented by a $4 \times 25$ matrix where every element is 0.25.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">actions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+<span class="n">pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">([[</span><span class="mf">0.25</span><span class="p">]],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">25</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>There are two special states $A$ and $B$ where every action leads to a jump to the next states $A’$ and $B’$. For every other state all actions lead to the neighbouring state that depends on the action - unless this action would lead to a state outside the grid in which case the next state is the same as the present state.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">state_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">state_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">next_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">next_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>For next states $A’$ the reward is 10 and for $B’$ it is $5$. For all other next states rewards are $0$ unless the action leads to a state outside the grid in which case the reward is $-1$</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rewards</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
+<span class="n">rewards2ind</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">rewards</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rewards</span><span class="p">))))</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">out_of_bounds</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="nb">any</span><span class="p">(</span><span class="n">state</span> <span class="o">&gt;=</span> <span class="p">[</span><span class="n">h</span><span class="p">,</span><span class="n">w</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> 
+                          <span class="n">np</span><span class="o">.</span><span class="nb">any</span><span class="p">(</span><span class="n">state</span> <span class="o">&lt;</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">out_of_bounds</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>array([False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False])
+</code></pre></div></div>
+
+<p>We will now create a $4D$ tensor for $p(s’,r \vert s, a)$ i.e. at tensor with dimensions $\lvert\mathcal{S}\rvert \times \lvert\mathcal{R}\rvert \times \lvert\mathcal{S}\rvert \times
+\lvert\mathcal{A}\rvert$.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rewards</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">actions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">s</span><span class="p">,</span><span class="n">state</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">states</span><span class="p">):</span>
+    
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">actions</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="nb">all</span><span class="p">(</span><span class="n">state</span> <span class="o">==</span> <span class="n">state_a</span><span class="p">):</span>
+            <span class="n">next_state</span> <span class="o">=</span> <span class="n">next_a</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="nb">all</span><span class="p">(</span><span class="n">state</span> <span class="o">==</span> <span class="n">state_b</span><span class="p">):</span>
+            <span class="n">next_state</span> <span class="o">=</span> <span class="n">next_b</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">next_state</span> <span class="o">=</span> <span class="n">state</span><span class="o">+</span><span class="n">action</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="mi">0</span>
+            
+        <span class="c1">#Determine if next state is outside the grid boundaries
+</span>        <span class="k">if</span> <span class="n">out_of_bounds</span><span class="p">(</span><span class="n">next_state</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+            <span class="n">next_state</span> <span class="o">=</span> <span class="n">state</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        
+        <span class="n">P</span><span class="p">[</span><span class="n">state2ind</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">next_state</span><span class="p">)],</span> <span class="n">rewards2ind</span><span class="p">[</span><span class="n">reward</span><span class="p">],</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+</code></pre></div></div>
+
+<p>For both $\mathbf{Q}$ and $\mathbf{R}$ we need to find</p>
+
+<script type="math/tex; mode=display">\sum_{a} p(s', r_i \vert s, a) \cdot \pi(a\vert s)</script>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">P</span><span class="o">*</span><span class="n">pi</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.9</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">gamma</span><span class="o">*</span><span class="n">Q</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rewards</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">A</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">make_grid</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_grid</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">offx</span><span class="p">,</span> <span class="n">offy</span><span class="p">,</span> <span class="n">th</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">offx</span><span class="p">,</span><span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">offy</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="nb">round</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> 
+                 <span class="n">color</span><span class="o">=</span><span class="s">'white'</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">th</span> <span class="k">else</span> <span class="s">'k'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">v_grid</span> <span class="o">=</span> <span class="n">make_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="mi">1</span><span class="p">),[</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">v_grid</code> should be the same as in the diagram shown in the book:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">v_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="mf">3.3</span><span class="p">,</span>  <span class="mf">8.8</span><span class="p">,</span>  <span class="mf">4.4</span><span class="p">,</span>  <span class="mf">5.3</span><span class="p">,</span>  <span class="mf">1.5</span><span class="p">],</span>
+                   <span class="p">[</span> <span class="mf">1.5</span><span class="p">,</span>  <span class="mf">3.</span> <span class="p">,</span>  <span class="mf">2.3</span><span class="p">,</span>  <span class="mf">1.9</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">],</span>
+                   <span class="p">[</span> <span class="mf">0.1</span><span class="p">,</span>  <span class="mf">0.7</span><span class="p">,</span>  <span class="mf">0.7</span><span class="p">,</span>  <span class="mf">0.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">],</span>
+                   <span class="p">[</span><span class="o">-</span><span class="mf">1.</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.2</span><span class="p">],</span>
+                   <span class="p">[</span><span class="o">-</span><span class="mf">1.9</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.3</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.</span> <span class="p">]])</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">values_match</span><span class="p">(</span><span class="n">v_true</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="nb">all</span><span class="p">(</span><span class="n">v_true</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="n">values_match</span><span class="p">(</span><span class="n">v_true</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>True
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">v_grid</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'State-value function'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">();</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">);</span>
+<span class="n">plot_grid</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_36_0.png" alt="png" /></p>
+
+<h1 id="optimal-value-function">Optimal value function</h1>
+
+<h3 id="bellman-optimality-equation">Bellman optimality equation</h3>
+<p><script type="math/tex">v_*(s) = \max_a \sum_{s',r}p(s', r \lvert s, a)\left[r + \gamma v_*(s')\right]</script></p>
+
+<p>Below $\mathbf{P}$ is the $4D$ tensor defined above where $\mathbf{P}_{s’isa} = p(s’,r_i\lvert s, a)$:</p>
+
+<script type="math/tex; mode=display">\mathbf{v}_* = \max_a \sum_{s'}\mathbf{r}\mathbf{P}_{s' : s a} + \gamma\sum_{i}\mathbf{v}_*\mathbf{P}_{: i s a}</script>
+
+<p>This is not a linear equation so we can’t solve it as before but we can estimate the solution iteratively. We will initialise $\mathbf{v}$ in different ways and keep updating it with the max over all actions $a$ of $\sum_{s’}\mathbf{r}\mathbf{P}<em>{s’ : s a} + \gamma\sum</em>{i}\mathbf{v}<em>*\mathbf{P}</em>$ until the difference between consecutive value functions becomes negligible.</p>
+
+<p>We will define a function to use later that will plot actions as arrows.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_actions</span><span class="p">(</span><span class="n">ox</span><span class="p">,</span><span class="n">oy</span><span class="p">,</span><span class="n">length</span><span class="p">,</span><span class="n">actions</span><span class="p">,</span><span class="n">clr</span><span class="o">=</span><span class="s">'k'</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">arrow</span><span class="p">(</span><span class="n">ox</span><span class="p">,</span><span class="n">oy</span><span class="p">,</span><span class="n">length</span><span class="o">*</span><span class="n">action</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">length</span><span class="o">*</span><span class="n">action</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">color</span><span class="o">=</span><span class="n">clr</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="initialisation-with-v_pis-for-uniform-pialvert-s">Initialisation with $v_\pi(s)$ for uniform $\pi(a\lvert s)$</h4>
+
+<p>Here we will use the value of $\mathbf{v}$ found analytically above.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">estimate_vstar</span><span class="p">(</span><span class="n">v_init</span><span class="p">,</span> <span class="n">prob_next_reward</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+    <span class="n">iters</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">v_prev</span> <span class="o">=</span> <span class="n">v_init</span>
+    <span class="n">vs</span> <span class="o">=</span> <span class="p">[</span><span class="n">v_prev</span><span class="p">]</span>
+    <span class="n">diffs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">iters</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="n">QQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s">'j,ijkl-&gt;ikl'</span><span class="p">,</span><span class="n">rewards</span><span class="p">,</span> <span class="n">prob_next_reward</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> 
+        <span class="n">RR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s">'i,ijkl-&gt;jkl'</span><span class="p">,</span><span class="n">v_prev</span><span class="p">,</span> <span class="n">prob_next_reward</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">v_next</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="n">QQ</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">*</span><span class="n">RR</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">v_prev</span><span class="o">-</span><span class="n">v_next</span><span class="p">)</span>
+        <span class="n">diffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">diff</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'</span><span class="se">\r</span><span class="s">Iteration {}, mean squared difference {:.7f}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">iters</span><span class="p">,</span> <span class="n">diffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v_next</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="nb">all</span><span class="p">(</span><span class="n">diff</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">):</span>
+            <span class="k">break</span>
+        <span class="n">v_prev</span> <span class="o">=</span> <span class="n">v_next</span> 
+    <span class="k">return</span> <span class="n">v_next</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">diffs</span><span class="p">,</span> <span class="n">QQ</span><span class="p">,</span> <span class="n">RR</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">vstar_</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">diffs</span><span class="p">,</span> <span class="n">QQ</span><span class="p">,</span> <span class="n">RR</span> <span class="o">=</span> <span class="n">estimate_vstar</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">rewards</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Iteration 148, mean squared difference 0.0000000
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_curves</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">diffs</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span><span class="s">'-o'</span><span class="p">,</span><span class="n">markersize</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'$v_t(s)$ for all states across iterations'</span><span class="p">)</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">diffs</span><span class="p">,</span><span class="s">'-o'</span><span class="p">);</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Mean squared difference $|v_t(s)-v_{t-1}(s)|^2$ for all states across iterations'</span><span class="p">);</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_curves</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">diffs</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_46_0.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_46_1.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_first_25</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">th</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="n">vs_to_plot</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[:</span><span class="mi">25</span><span class="p">]</span>
+    <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">min</span><span class="p">(</span><span class="n">vs_to_plot</span><span class="p">)</span>
+    <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="n">vs_to_plot</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">15</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vs_to_plot</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">make_grid</span><span class="p">(</span><span class="n">vi</span><span class="p">,</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">]),</span> <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'$v_</span><span class="err">\</span><span class="s">{</span><span class="err">\</span><span class="si">%</span><span class="s">i</span><span class="err">\</span><span class="s">}(s)$'</span>\<span class="o">%</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">);</span>
+        <span class="n">plot_grid</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">vi</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">th</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_first_25</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_48_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_best_actions</span><span class="p">(</span><span class="n">QQ</span><span class="p">,</span> <span class="n">RR</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
+    <span class="n">v_next_all</span> <span class="o">=</span> <span class="n">QQ</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">*</span><span class="n">RR</span>
+    <span class="n">actions_best</span><span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">v_next_all</span><span class="p">:</span>
+        <span class="n">best_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vals</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+        <span class="n">actions_best</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">actions</span><span class="p">[</span><span class="n">best_inds</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">actions_best</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">actions_best</span> <span class="o">=</span> <span class="n">get_best_actions</span><span class="p">(</span><span class="n">QQ</span><span class="p">,</span> <span class="n">RR</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>A note on the coordinate system</strong></p>
+
+<p>Again we can confirm that out results match the ones shown in the book. Note we are using the $ij$ matrix based axis rather than the usual $xy$ coordinate axis. That means when we move <code class="highlighter-rouge">up</code> in $xy$-coordinates, this corresponds to a <code class="highlighter-rouge">down</code> for the matrix since the row number $i$ decreases. Although <code class="highlighter-rouge">left</code> and <code class="highlighter-rouge">right</code> are equivalent, whilst moving <code class="highlighter-rouge">left</code> or <code class="highlighter-rouge">right</code> in $xy$ decreases or increases the $x$ coordinate, here the column $j$ decreases or increases. So for plotting our states and actions will be reversed. In order to facilitate comparision of the best actions to those shown in the book, we will reverse the action vectors and use <code class="highlighter-rouge">down</code> where the diagram in the book has <code class="highlighter-rouge">up</code>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#Directions in xy world 
+</span><span class="n">right_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]])</span>
+<span class="n">left_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]])</span>
+<span class="n">down_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+<span class="n">up_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+
+<span class="c1">#Directions in matrix world 
+</span><span class="n">right</span> <span class="o">=</span> <span class="n">up_</span>
+<span class="n">left</span> <span class="o">=</span> <span class="n">down_</span>
+<span class="n">down</span> <span class="o">=</span> <span class="n">right_</span>
+<span class="n">up</span> <span class="o">=</span> <span class="n">left_</span>
+
+<span class="n">right_up</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">right</span><span class="p">,</span> <span class="n">up</span><span class="p">])</span>
+<span class="n">up_left</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">up</span><span class="p">,</span> <span class="n">left</span><span class="p">])</span>
+
+<span class="n">actions_best_true</span> <span class="o">=</span> <span class="p">[</span><span class="n">right</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span>
+                     <span class="n">right_up</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span>
+                     <span class="n">right_up</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span>
+                     <span class="n">right_up</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span>
+                     <span class="n">right_up</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span> <span class="n">up_left</span><span class="p">,</span> <span class="n">up_left</span><span class="p">]</span>
+
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">actions_match</span><span class="p">(</span><span class="n">actions_true</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="nb">all</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="nb">all</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">,</span> <span class="n">actions_best</span><span class="p">,</span> <span class="n">actions_best_true</span><span class="p">)))))</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">actions_match</span><span class="p">(</span><span class="n">actions_best_true</span><span class="p">,</span> <span class="n">actions_best</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>True
+</code></pre></div></div>
+
+<p>Confirm <code class="highlighter-rouge">v_next</code> is the same:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">vstar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">22.</span> <span class="p">,</span> <span class="mf">24.4</span><span class="p">,</span> <span class="mf">22.</span> <span class="p">,</span> <span class="mf">19.4</span><span class="p">,</span> <span class="mf">17.5</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mf">19.8</span><span class="p">,</span> <span class="mf">22.</span> <span class="p">,</span> <span class="mf">19.8</span><span class="p">,</span> <span class="mf">17.8</span><span class="p">,</span> <span class="mf">16.</span> <span class="p">],</span>
+                        <span class="p">[</span><span class="mf">17.8</span><span class="p">,</span> <span class="mf">19.8</span><span class="p">,</span> <span class="mf">17.8</span><span class="p">,</span> <span class="mf">16.</span> <span class="p">,</span> <span class="mf">14.4</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mf">16.</span> <span class="p">,</span> <span class="mf">17.8</span><span class="p">,</span> <span class="mf">16.</span> <span class="p">,</span> <span class="mf">14.4</span><span class="p">,</span> <span class="mf">13.</span> <span class="p">],</span>
+                        <span class="p">[</span><span class="mf">14.4</span><span class="p">,</span> <span class="mf">16.</span> <span class="p">,</span> <span class="mf">14.4</span><span class="p">,</span> <span class="mf">13.</span> <span class="p">,</span> <span class="mf">11.7</span><span class="p">]])</span>
+
+<span class="n">values_match</span><span class="p">(</span><span class="n">vstar</span><span class="p">,</span> <span class="n">vstar_</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>True
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_init_final</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions_best</span><span class="p">):</span>
+    <span class="n">v_init_final</span> <span class="o">=</span> <span class="p">[</span><span class="n">vs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">vs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">min</span><span class="p">(</span><span class="n">v_init_final</span><span class="p">)</span>
+    <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="n">v_init_final</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,(</span><span class="n">vi</span><span class="p">,</span><span class="n">title</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">v_init_final</span><span class="p">,</span> <span class="p">[</span><span class="s">'$v_0(s)$'</span><span class="p">,</span> <span class="s">'$v*(s)$'</span><span class="p">])):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">make_grid</span><span class="p">(</span><span class="n">vi</span><span class="p">,[</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">]),</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span><span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">();</span>
+
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">acts</span><span class="p">,</span> <span class="p">(</span><span class="n">oy</span><span class="p">,</span> <span class="n">ox</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vi</span><span class="p">,</span> <span class="n">actions_best</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+
+                <span class="n">plot_actions</span><span class="p">(</span><span class="n">ox</span><span class="p">,</span> <span class="n">oy</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">acts</span><span class="p">[:,::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">head_width</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">plot_grid</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">vi</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">);</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_init_final</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions_best</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_58_0.png" alt="png" /></p>
+
+<h4 id="zero-initialisation">Zero initialisation</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">v_next_zero</span><span class="p">,</span> <span class="n">vs_zero</span><span class="p">,</span> <span class="n">diffs_zero</span><span class="p">,</span> <span class="n">QQ_zero</span><span class="p">,</span> <span class="n">RR_zero</span> <span class="o">=</span> <span class="n">estimate_vstar</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">P</span><span class="p">,</span> <span class="n">rewards</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">values_match</span><span class="p">(</span><span class="n">vstar</span><span class="p">,</span> <span class="n">v_next_zero</span><span class="p">)</span>
+<span class="n">actions_best_zero</span> <span class="o">=</span>  <span class="n">get_best_actions</span><span class="p">(</span><span class="n">QQ_zero</span><span class="p">,</span> <span class="n">RR_zero</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">actions_match</span><span class="p">(</span><span class="n">actions_best</span><span class="p">,</span> <span class="n">actions_best_zero</span><span class="p">)</span>
+<span class="n">plot_curves</span><span class="p">(</span><span class="n">vs_zero</span><span class="p">,</span> <span class="n">diffs_zero</span><span class="p">)</span>
+<span class="n">plot_first_25</span><span class="p">(</span><span class="n">vs_zero</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span>
+<span class="n">plot_init_final</span><span class="p">(</span><span class="n">vs_zero</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions_best_zero</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Iteration 154, mean squared difference 0.0000000
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_60_1.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_60_2.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_60_3.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_60_4.png" alt="png" /></p>
+
+<h4 id="random-initialisation">Random initialisation</h4>
+
+<p>Here each $v(s) \sim \mathcal{N}(\mu = 10, \sigma=1)$.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">v_next_rand</span><span class="p">,</span> <span class="n">vs_rand</span><span class="p">,</span> <span class="n">diffs_rand</span><span class="p">,</span> <span class="n">QQ_rand</span><span class="p">,</span> <span class="n">RR_rand</span> <span class="o">=</span> <span class="n">estimate_vstar</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">P</span><span class="p">,</span> <span class="n">rewards</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">values_match</span><span class="p">(</span><span class="n">vstar</span><span class="p">,</span> <span class="n">v_next_rand</span><span class="p">)</span>
+<span class="n">actions_best_rand</span> <span class="o">=</span>  <span class="n">get_best_actions</span><span class="p">(</span><span class="n">QQ_rand</span><span class="p">,</span> <span class="n">RR_rand</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">actions_match</span><span class="p">(</span><span class="n">actions_best</span><span class="p">,</span> <span class="n">actions_best_rand</span><span class="p">)</span>
+<span class="n">plot_curves</span><span class="p">(</span><span class="n">vs_rand</span><span class="p">,</span> <span class="n">diffs_rand</span><span class="p">)</span>
+<span class="n">plot_first_25</span><span class="p">(</span><span class="n">vs_rand</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">plot_init_final</span><span class="p">(</span><span class="n">vs_rand</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions_best_rand</span><span class="p">)</span>
+
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Iteration 151, mean squared difference 0.0000000
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_62_1.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_62_2.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_62_3.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Bellman-Example/Bellman-Example_62_4.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/09/02/Bellman-Example.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

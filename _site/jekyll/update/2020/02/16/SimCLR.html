@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">SimCLR</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-02-16T10:37:00+00:00" itemprop="datePublished">Feb 16, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on the paper <a href="https://arxiv.org/pdf/2002.05709.pdf">A Simple Framework for Contrastive Learning of Visual Representations</a>. All mistakes are my own.</p>
+
+<h2 id="the-approach">The approach</h2>
+<ul>
+  <li>The model is trained on a large unlabelled dataset using the contrastive loss.</li>
+  <li>It can be used to generate features that can be used in tasks downstream without having to train a large supervised model.</li>
+  <li>Typically the model is evaluated by training a linear classifier using these features</li>
+</ul>
+
+<h2 id="nt-xent-loss">NT-Xent loss</h2>
+<ul>
+  <li>For each vector $x_k, k=1, \ldots, N$, you apply a pair of augmentations to get $\tilde{x}_{2k - 1}, \tilde{x}_{2k}$ result in $N$ pairs of vectors.</li>
+</ul>
+
+<p><img src="/papertrail/assets/SimCLR/simclr_1.jpg" alt="png" /></p>
+
+<ul>
+  <li>For $x_k$, the pair $\tilde{x}_{2k - 1}, \tilde{x}_{2k}$ is consider “positive” whilst all pairs $\tilde{x}_{2\kappa’ - 1}, \tilde{x}_{2\kappa,, \kappa \neq k}$ are considered “negative”.</li>
+  <li>For each of these features are obtained from a base “backbone” model (such as a ResNet architecture) denoted $f$ and these are the non-linearly projected via a shallow model $g$ to an embedding space resulting in vectors $z_i$ for each $\tilde{x}_i$.</li>
+  <li>For each $\tilde{z}_{i}$, the pairwise cosine similarity $s_{ij}$ is found for all other vectors $\tilde{z}_{i, i\neq j}$, resulting in a $2N-1$-d vector of similarities.</li>
+  <li>We find the softmax of this vector and for each odd $i$ we keep just the softmax corresponding to $s_{i, i+1}$ and for each even i the one corresponding to $s_{i, i=}$</li>
+  <li>We interpret this as the probability that for $\tilde{z}_{i}$, $\tilde{z}_{i+1}$ or $\tilde{z}_{i-1}$, as the case may be, is positive relative to all the <em>other</em> $\tilde{z}_{j}$, apart from $\tilde{z}_{i}$ itself.</li>
+</ul>
+
+<p><img src="/papertrail/assets/SimCLR/simclr_2.jpg" alt="png" /></p>
+
+<ul>
+  <li>From this point it is simply a case of training with a cross entropy where these probabilities are the predictions and the labels are all ones.</li>
+  <li>There no negative labels as such but negativity features implicitly in the denominator of the softmax since to make the probability larger since for a given images, different images should have embeddings that are less similar compared to embeddings of augmented versions of the same image.</li>
+  <li>The pretext task here is essentially to predict whether the embedding of one augmentation on an image is positive to the embedding of another augmentation relative to the embeddings for all the other images.</li>
+</ul>
+
+<h2 id="benefits-of-the-loss-function">Benefits of the loss function</h2>
+<ul>
+  <li>Using CE-loss automatically does hard-negative mining with the right temperature.</li>
+  <li>If a negative example has a high probability it leads to higher contribution to the gradient in the opposite direction</li>
+  <li>The input vectors to the loss are $l_2$-normalised</li>
+  <li>Adding semi-hard negative mining helps performance when using other losses but NT-Xent is still the best</li>
+</ul>
+
+<h2 id="implementation-details">Implementation details</h2>
+<ul>
+  <li>Augmentations
+    <ul>
+      <li>Random crop and resize</li>
+      <li>Random flip</li>
+      <li>Colour distortion</li>
+      <li>Gaussian blur</li>
+    </ul>
+  </li>
+  <li>$f$ = ResNet50 as base encoder</li>
+  <li>$g$ = 2-layer MLP to project representations to a 128-dimensional space</li>
+  <li>NT-Xent loss</li>
+  <li>LARS optimiser</li>
+  <li>Weight decay of $10^{-6}$</li>
+  <li>Batch size of 4096 for 100 epochs</li>
+  <li>Learning rate
+    <ul>
+      <li>Linear learning rate scaling <code class="highlighter-rouge">lr = 0.3 * batch_size / 256</code></li>
+      <li>Linear warmup for first 10 epochs</li>
+      <li>Cosine decay schedule without restarts</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="differences-between-supervised-and-unsupervised">Differences between supervised and unsupervised</h2>
+<p>They following which can benefit supervised training were found to a have a greater effect on improving performance of unsupervised models trained in this paper compared to several supervised models:</p>
+<ul>
+  <li>Bigger i.e. wider and / or deeper models</li>
+  <li>Non-linear</li>
+  <li>Larger batch sizes
+    <ul>
+      <li>Helps models to converge after fewer iterations</li>
+      <li>To put it differently when training for fewer iterations larger batch sizes lead to better performance</li>
+      <li>The reason for the effect for unsupervised learning is that availability of more negative examples</li>
+      <li>Longer training also provides more negative examples so compensates for smaller batch size</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="effect-of-augmentations">Effect of augmentations</h2>
+<ul>
+  <li>You can typically tell which patch an image comes from by its colour histogram since most patches from a given image have a similar colour distribution (presumably they mean most sufficiently large patches).</li>
+  <li>To prevent the model from exploiting this short-cut, colour distortion should be applied not just cropping.</li>
+  <li>Unsupervised learning benefits more from stronger colour augmentations than supervised:
+    <ul>
+      <li>They compare supervised ResNet50 with a linear classifier trained with unsupervised ResNet50 features</li>
+      <li>They compared the effect in each case of applying colour augmentations of various strengths and AutoAugment</li>
+      <li>For supervised, AutoAugment is better than all the strengths and increasing the strength makes performance worse</li>
+      <li>For unsupervised increasing strength improves performance, surpassing AutoAugment at higher strengths</li>
+    </ul>
+  </li>
+  <li>Different augmentations applied on their own or in pairs,
+    <ul>
+      <li>They are applied both orders e.g. colour then noise, noise then color:</li>
+      <li>In some cases the order does matter - for coloir and noise, coloir followed by noise does between than noise followed by colour</li>
+    </ul>
+  </li>
+  <li>For the above since images are of different sizes cropping is always done with other transform, they study the effect of augmentations applied on their own
+    <ul>
+      <li>Randomly crop and resize each image to the same resolution</li>
+      <li>Apply transform only to one branch of the framework</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="results">Results</h2>
+<ul>
+  <li>For all these only $f$ is used and it is either fine-tuned or</li>
+  <li>Semi-supervised
+    <ul>
+      <li>Model is finetuned on a small fraction (1% or 10% of the data)</li>
+    </ul>
+  </li>
+  <li>Transfer learning
+    <ul>
+      <li>Classification experiments are done on 12 other image datasets</li>
+      <li>An ImageNet trained ResNet50 is used, either frozen or fine-tuned.</li>
+      <li>It does as well or better in 7 out of 12 datasets when the backbone is frozen.</li>
+      <li>It does as well or better in 10 out of 12 datasets when the backbone is finetuned.</li>
+    </ul>
+  </li>
+  <li>Linear evaluation
+    <ul>
+      <li>Beats all earlier methods</li>
+      <li>An unsupervised Wide ResNet50 with width multiplier 4x achieves ImageNet top-1 accuracy of 76.5 % in linear evaluation that is comparable to the result from supervised ResNet50 (76.3 %).</li>
+    </ul>
+  </li>
+</ul>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/02/16/SimCLR.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

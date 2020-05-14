@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Cubify Algorithm</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-02-06T21:10:54+00:00" itemprop="datePublished">Feb 6, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Cubify is an algorithm introduced in the paper <a href="https://arxiv.org/pdf/1906.02739">Mesh R-CNN</a> (my notes <a href="/papertrail/jekyll/update/2019/06/13/Mesh_RCNN.html">here</a>) for converting a volume where each voxel’s value is its probability of occupancy into a triangle-based mesh. The paper provides a naive implementation in pseudo-code.</p>
+
+<p><img src="/papertrail/assets/Cubify/pseudo-code.png" alt="cubify pseudo-code figure from Mesh_RCNN paper" /></p>
+
+<p>In simple terms if a given voxel has a probability above the threshold <script type="math/tex">\tau</script> then for each of its face, the face is discared if the neighbour with whom the face is shared also has a probability greater than the threshold. Equivalently (the approach we follow code below) for each face of a given voxel, the face is kept if the neighbour with whom it is shared has a probability less or equal to the threshold. Note that each face is then split into two triangles to produce a triangular mesh.</p>
+
+<p>They indicate that the above algorithm can be implemented efficiently using 3D convolutions in place of the nested for-loops. Below I have implemented a version in PyTorch. All mistakes are my own.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Cubify</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Cubify</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">=</span> <span class="n">tau</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">copy_probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv3d</span><span class="p">(</span><span class="n">in_channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out_channels</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                         <span class="n">bias</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_faces</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">copy_probs</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_kernel</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">copy_probs</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="bp">False</span>
+        
+    <span class="k">def</span> <span class="nf">_make_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Each of the 6 filters has a 1 at just one position
+</span>        <span class="c1"># corresponding to each of the relative locations 
+</span>        <span class="c1"># handled by the conditions in the algorithm above.
+</span>        <span class="c1"># When applied it results in copying the value 
+</span>        <span class="c1"># from the voxel at that location.
+</span>        
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">copy_inds</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="c1"># x1 
+</span>                     <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="c1"># x2
+</span>                     <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="c1"># y1
+</span>                     <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="c1"># y2
+</span>                     <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># z1
+</span>                     <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span> <span class="c1"># z2
+</span>        
+        <span class="n">copy_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">copy_inds</span><span class="p">)</span>
+        
+        <span class="n">kernel</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">copy_inds</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">kernel</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span>
+        
+        
+    <span class="k">def</span> <span class="nf">_make_verts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="c1"># Make a grid of the size of points 
+</span>        <span class="n">grid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="nb">long</span><span class="p">()</span>  <span class="c1"># (L, H, W, 3)
+</span>        
+        <span class="c1"># Regarding each point as the centre of a cube, these are the offsets 
+</span>        <span class="c1"># for each of the corners of the cube
+</span>        <span class="n">offsets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+                               <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> 
+                               <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+                               <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+                               <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+                               <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> 
+                               <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> 
+                               <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+        
+        <span class="c1"># Add the offsets to get the corner coordinates for each point
+</span>        <span class="n">verts</span> <span class="o">=</span> <span class="n">grid</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span> <span class="c1"># (L, H, W, 8, 3)
+</span>        
+        <span class="k">return</span> <span class="n">verts</span>
+        
+    <span class="k">def</span> <span class="nf">_make_faces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Define the pair of triangular faces corresponding to each face
+</span>        <span class="c1"># of a cube
+</span>        
+        <span class="c1"># 000 - 0
+</span>        <span class="c1"># 001 - 1
+</span>        <span class="c1"># 010 - 2
+</span>        <span class="c1"># 011 - 3
+</span>        <span class="c1"># 100 - 4
+</span>        <span class="c1"># 101 - 5
+</span>        <span class="c1"># 110 - 6
+</span>        <span class="c1"># 111 - 7
+</span>        
+        <span class="c1"># These are the indices for the vertices for the faces for first cube
+</span>        <span class="n">x1</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]]</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]</span>
+        <span class="n">y2</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]]</span>
+        <span class="n">z1</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">]]</span>
+        <span class="n">z2</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">]]</span>
+        
+        <span class="n">faces</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">])</span> <span class="c1"># (6, 2, 3)
+</span>        <span class="k">return</span> <span class="n">faces</span>
+        
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1"># Apply the first condition
+</span>        <span class="n">include</span> <span class="o">=</span> <span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">)</span> <span class="c1"># (N, L*H*W, 1)
+</span>        
+        <span class="c1"># Copy the probabilities at the 6 surrounding voxels
+</span>        <span class="n">_probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy_probs</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span> <span class="c1"># (N, 6, L, H, W)
+</span>        <span class="c1"># Reshape to make these the last channel
+</span>        <span class="n">probs</span> <span class="o">=</span> <span class="n">_probs</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># (N, L, H, W, 6)
+</span>        <span class="c1"># Generate corner coordinates for each voxel 
+</span>        <span class="n">_verts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_verts</span><span class="p">(</span><span class="n">inputs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># (L, H, W, 8, 3)
+</span>        <span class="n">verts</span> <span class="o">=</span> <span class="n">_verts</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="c1"># (L*H*W, 8, 3)
+</span>        
+        <span class="c1"># Apply the conditions for surrounding voxels
+</span>        <span class="n">exclude_surround</span> <span class="o">=</span> <span class="p">(</span><span class="n">probs</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="c1"># (N, L*H*W, 6)
+</span>        
+        <span class="c1"># Keep a face if voxel has sufficient probability
+</span>        <span class="c1"># and neighbouring voxel has probability below tau
+</span>        <span class="n">faces_mask</span> <span class="o">=</span> <span class="n">exclude_surround</span> <span class="o">&amp;</span> <span class="n">include</span> <span class="c1"># (N, L*H*W, 6)
+</span>        
+        <span class="c1">#masks = (probs &lt; self.tau).view(-1, 6) # (L*H*W, 6)
+</span>        <span class="c1">#masks = masks &amp; (inputs.view(-1, 1) &gt;= self.tau)
+</span>        
+        <span class="c1"># As each voxel has its own copy of all its 8 vertices 
+</span>        <span class="c1"># e.g. for the i-th voxel it is verts[i] and since there
+</span>        <span class="c1"># are 8 vertices per voxel, for every subsequent voxel increase 
+</span>        <span class="c1"># the voxel indices by 1 so the we index into the right faces 
+</span>        <span class="n">_offset</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">2</span><span class="p">:])))</span><span class="o">.</span><span class="nb">long</span><span class="p">()</span> <span class="c1">#(L*H*W)
+</span>        <span class="n">offset</span> <span class="o">=</span> <span class="n">_offset</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="c1">#(N, L*H*W)
+</span>        <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">faces</span> <span class="o">+</span> <span class="n">offset</span><span class="p">[:,</span> <span class="p">:,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span> <span class="c1"># (N, L*H*W, 6, 2, 3)
+</span>        
+        <span class="c1"># So that the vertices corresponding to the faces may be selected 
+</span>        <span class="n">batch_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))[:,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span> \
+                        <span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">faces</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># (N, L*H*W, 6, 2)
+</span>        
+        <span class="n">batch_inds</span> <span class="o">=</span> <span class="n">batch_inds</span><span class="p">[</span><span class="n">faces_mask</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1">#(M * 2)
+</span>        <span class="n">faces_keep</span> <span class="o">=</span> <span class="n">faces</span><span class="p">[</span><span class="n">faces_mask</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="c1">#(M * 2, 3)
+</span>        <span class="k">return</span> <span class="n">verts</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">faces_keep</span><span class="p">,</span> <span class="n">batch_inds</span>
+</code></pre></div></div>
+<p>Here we run it on a small dataset to demonstrate that it works on a batch of volumes that result in variable-sized meshes. All the vertices are generated for the grid size and the tensor <code class="highlighter-rouge">batch_inds</code> is used to index into <code class="highlighter-rouge">faces</code> as needed.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cubify</span> <span class="o">=</span> <span class="n">Cubify</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+<span class="n">vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">((((</span><span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">'float32'</span><span class="p">))</span>
+<span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">inputs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+
+<span class="n">v</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">cubify</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+<span class="n">points</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">faces</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">binds</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">matplotlib.animation</span> <span class="kn">import</span> <span class="n">FuncAnimation</span>
+
+<span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+    
+    <span class="n">p</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">[:</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">p</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s">'k'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">p</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s">'k'</span><span class="p">)</span>
+        
+    <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">ax</span>
+
+<span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)):</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s">'3d'</span><span class="p">)</span>
+    <span class="n">faces_b</span> <span class="o">=</span> <span class="n">faces</span><span class="p">[</span><span class="n">binds</span><span class="o">==</span><span class="n">b</span><span class="p">]</span>
+    <span class="n">anim</span> <span class="o">=</span> <span class="n">FuncAnimation</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">faces_b</span><span class="p">),</span> <span class="n">frames</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">faces_b</span><span class="p">)),</span> <span class="n">interval</span><span class="o">=</span><span class="mi">200</span><span class="p">);</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">anim</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">'mesh{}.gif'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">writer</span><span class="o">=</span><span class="s">'imagemagick'</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p><strong>Approximate cylinder with height 2, diameter 5</strong>
+<br />
+<img src="/papertrail/assets/Cubify/mesh0.gif" alt="gif showing construction of mesh for an approximate cylinder with height 2, diameter 5" />
+<br />
+<strong>Unit cube</strong>
+<br />
+<img src="/papertrail/assets/Cubify/mesh1.gif" alt="gif showing construction of mesh for a unit cube" />
+<br />
+<strong>3 x 3 cube</strong>
+<br />
+<img src="/papertrail/assets/Cubify/mesh2.gif" alt="gif showing construction of mesh for a 3 x 3 x 3 cube" /></p>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/02/06/Cubify.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

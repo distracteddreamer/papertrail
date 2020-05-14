@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">[WIP] Distributed Systems</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-04-11T21:32:00+01:00" itemprop="datePublished">Apr 11, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Notes from my study of <a href="https://pdos.csail.mit.edu/6.824/index.html">MIT’s 6.824: Distributed Systems</a>. This is not intended to be contain a summary of the topics but thoughts and notes related to the concepts in the course.</p>
+
+<h2 id="week-1--mapreduce">Week 1 — MapReduce</h2>
+<h4 id="master-failure">Master failure</h4>
+<ul>
+  <li>
+    <p>Whilst the method allows for workers failure, the master is not expected to fail. This is because there is only a single master and if there is a large number of computers, the probability of any a particular computer failing is low. However the probability that some machine will fail might not be negligible, hence the need to anticipate worker failure.</p>
+  </li>
+  <li>
+    <p>Let $p &gt; 0$ be the probability that a given machine will fail and assume that the chance of failure is independent for each machine. Then for $N &gt; 1$ machines, the probability that at least one machine in the cluster will fail, $P_\text{failure}$ = $1 - (1 - p)^N &gt; 1 - (1 - p) = p$. As $N$ increases the probablity of failure increases whilst the probability that a given machine will fail is unchanged.  For example for p = 0.001, for N = 100, $P_\text{failure} \approx 0.01$ whilst for N = 1000, $P_\text{failure} \approx 0.63$.</p>
+  </li>
+</ul>
+
+<h4 id="machine-failure">Machine failure</h4>
+<ul>
+  <li>If a worker fails during or after map task or during a reduce task, then the task status becomes “idle” and it becomes eligible for rescheduling elsewhere. A completed map task’s results are stored locally so become inaccessible if the worker fails so it needs to be done again.</li>
+  <li>However those of a completed reduce task are stored in a global file system so it doesn’t need to be re-run even if the worker fails after completing it. Other workers are informed on the failure and if they were meant to read data for a reduce task from worker A which has failed they will instead read it from worker B which has taken over the task.</li>
+</ul>
+
+<h4 id="failure-and-determinism">Failure and determinism</h4>
+<ul>
+  <li>When map and reduce operators are deterministic every time you will get the same results as you would in a sequential execution of the whole program e.g. if you are doing word counts, you count the number of words in document 1, then count those in document 2 and increment the count, and so on. Even if there is a failure and you re-run some of the tasks this will be just the same.</li>
+  <li>However in the absence of determinism reduce task R1’s output might correspond to one sequential execution whilst another reduce task R2’s might correspond to another sequential execution since each time the map task is re-run it might produce a different output.</li>
+</ul>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/04/11/Distributed-Systems.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">[WIP] Representation Learning with Contrastive Predictive Coding</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-04-13T13:45:00+01:00" itemprop="datePublished">Apr 13, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on the paper <a href="https://arxiv.org/pdf/1807.03748.pdf">Representation Learning with Contrastive Predictive Coding</a>. All mistakes are my own.</p>
+
+<h2 id="introduction">Introduction</h2>
+<ul>
+  <li>The idea behind this method is to learn good task-agnostic representations from unlabelled data.</li>
+  <li>A model pre-trained on say on a classification task on one dataset can typically extract features that enable it to generalise well across datasets but it is harder to extract features that generalise well across tasks like localisation.</li>
+</ul>
+
+<h2 id="method">Method</h2>
+<h3 id="sequences">Sequences</h3>
+<ul>
+  <li>You consider the model as sequence.</li>
+  <li>Even if it is not strictly sequential you can represent it as a sequence for example dividing an image into parts and going through them one at a time.</li>
+  <li>For each element $x_t$ of the sequence, features are obtained from a backbone encoder architecture $g_\text{enc}$, yielding $z_t = g_\text{enc}(x_t)$</li>
+  <li>The encoder $g_\text{enc}$ can be any architecture appropriate for the domain e.g. ResNets for images and typically is not pre-trained and once it has been trained via this method, its outputs can be used for downstream tasks.</li>
+</ul>
+
+<h3 id="contexts-and-futures">Contexts and futures</h3>
+<ul>
+  <li>For a given position $t$ in the sequence you then combine all the $z_{\tau \le t}$ via an autoregressive model (one which outputs a value for each element of the sequence which is then fed back to the model to produce the next output) to get a context vector $c_t$.</li>
+  <li>Then you define a “future neighbourhood” for $t$ which could all the elements upto $T$ positions in the future.</li>
+  <li>The idea is that you should be able to predict “future features” i.e. features of elements at a given locations in that neighbourhood using the context $c_t$.</li>
+  <li>In practice you don’t actually predict future features. Instead we turn it into a classification task.</li>
+</ul>
+
+<h3 id="positives-and-negatives">Positives and negatives</h3>
+<ul>
+  <li>For a given location $t$ we consider a set of $N$ features. Exactly one of these features is from the neighbourhood of $t$ and thus regarded as positive. The rest, which are also from the future, but are not from this neighbourhood are denoted as negative samples.</li>
+  <li>Let the positive sample be denoted as $x_i$. The task is to predict whether $z_i$ is positive or not relative to $x_t$.</li>
+  <li>
+    <p>For each sample you obtain a score for each of the pairs $(z_j, c_t), i = 1, \ldots, N$. In the paper they project $c_t$ a different vector for each position in the neighbourhood i.e. $W_kc_t$ for $k$ steps into the future and then take the dot product with $z_j$ yielding:</p>
+
+    <p>$s_{j,t}^k = z_j^T W_kc_t$</p>
+  </li>
+  <li>Next time we will discuss how the positive sample is considered to come from the future distribution $p(x_{t + k}\vert c_t)$ conditioned on the context whilst the negative sample is considered to come from $p(x_{t + k})$, the marginal future distribution and how the model learns representations in a way that maximally preserves mutual information of $c$ and $x$.</li>
+</ul>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/04/13/CPC.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

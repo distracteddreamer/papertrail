@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">TensorBoard for 3D data - quickstart</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-06-30T11:51:32+01:00" itemprop="datePublished">Jun 30, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Right now the TensorBoard graphics functionality which allows you to display 3d data is part of the TensorBoard nightly build.</p>
+
+<p>So first install the TensorFlow nightly build:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">pip3 <span class="nb">install </span>tf-nightly</code></pre></figure>
+
+<p>Now import the mesh plugin from <code class="highlighter-rouge">tensorboard</code></p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="n">tf</span>
+<span class="kn">from</span> <span class="nn">tensorboard.plugins.mesh</span> <span class="kn">import</span> <span class="n">summary</span> <span class="k">as</span> <span class="n">mesh_summary</span></code></pre></figure>
+
+<p>We will make use of the library meshzoo which as the name implies contains functionality to generate meshes for a variety of shapes. If you don’t have the library install it via pip</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">pip3 <span class="nb">install </span>meshzoo</code></pre></figure>
+
+<p>Let us create a summary for the mesh of a sphere and of a Moebius strip. First load the meshes (represented as set of vertices and edges) from mesh zoo.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">meshzoo</span>
+<span class="n">points_sp</span><span class="p">,</span> <span class="n">faces_sp</span> <span class="o">=</span> <span class="n">meshzoo</span><span class="o">.</span><span class="n">iso_sphere</span><span class="p">()</span> <span class="c1"># already between 1 and -1
+</span><span class="k">print</span><span class="p">(</span><span class="n">points_sp</span><span class="o">.</span><span class="nb">max</span><span class="p">(),</span> <span class="n">points_sp</span><span class="o">.</span><span class="nb">min</span><span class="p">())</span>
+<span class="c1">#=&gt; 1.0, -1.0
+</span><span class="n">points_mb</span><span class="p">,</span> <span class="n">faces_mb</span> <span class="o">=</span> <span class="n">meshzoo</span><span class="o">.</span><span class="n">moebius</span><span class="p">()</span> <span class="c1"># not between 1 and -1
+</span><span class="k">print</span><span class="p">(</span><span class="n">points_mb</span><span class="o">.</span><span class="nb">max</span><span class="p">(),</span> <span class="n">points_mb</span><span class="o">.</span><span class="nb">min</span><span class="p">())</span>
+<span class="c1">#=&gt; 15.0, -13.640587955517248
+</span><span class="n">points_mb</span> <span class="o">/=</span> <span class="n">points_mb</span><span class="o">.</span><span class="nb">max</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">points_mb</span><span class="o">.</span><span class="nb">max</span><span class="p">(),</span> <span class="n">points_mb</span><span class="o">.</span><span class="nb">min</span><span class="p">())</span>
+<span class="c1">#=&gt; 1.0 -0.9093725303678165</span></code></pre></figure>
+
+<p>Then create a summary for each mesh. The mesh can have colours for each vertex. 
+One important point to note is that the mesh inputs should all have a batch dimension, which we add below. We will also create a placeholder for a single colour that is then multiplied by the point coordinates - just to create an arbitrary set of colours for each point!</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">clr_sp</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">summary_sp</span> <span class="o">=</span> <span class="n">mesh_summary</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">'sphere_mesh'</span><span class="p">,</span> 
+                         <span class="n">vertices</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">points_sp</span><span class="p">[</span><span class="bp">None</span><span class="p">]),</span>
+                         <span class="n">faces</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">faces_sp</span><span class="p">[</span><span class="bp">None</span><span class="p">]),</span>
+                         <span class="n">colors</span><span class="o">=</span><span class="p">(</span><span class="n">clr_sp</span> <span class="o">*</span> <span class="n">points_sp</span><span class="p">)[</span><span class="bp">None</span><span class="p">])</span>
+<span class="n">clr_mb</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">summary_mb</span> <span class="o">=</span> <span class="n">mesh_summary</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s">'moebius_mesh'</span><span class="p">,</span> 
+                            <span class="n">vertices</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">points_mb</span><span class="p">[</span><span class="bp">None</span><span class="p">]),</span>
+                            <span class="n">faces</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">faces_mb</span><span class="p">[</span><span class="bp">None</span><span class="p">]),</span>
+                            <span class="n">colors</span><span class="o">=</span><span class="p">(</span><span class="n">clr_mb</span> <span class="o">*</span> <span class="n">points_mb</span><span class="p">)[</span><span class="bp">None</span><span class="p">])</span></code></pre></figure>
+
+<p>Now it is possible to use this as a normal tensorboard summary. First we need to create a summary writer.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">writer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">FileWriter</span><span class="p">(</span><span class="s">'./summaries'</span><span class="p">)</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">summary_sp</span><span class="p">,</span> <span class="n">summary_mb</span><span class="p">])</span></code></pre></figure>
+
+<p>Then create a session and run the summary op and add the summary string to the writer</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+    <span class="n">sum_str</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> 
+                <span class="n">feed_dict</span><span class="o">=</span><span class="p">{</span><span class="n">clr_sp</span><span class="p">:</span> <span class="p">[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>  
+                           <span class="n">clr_mb</span><span class="p">:</span> <span class="p">[</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">0</span><span class="p">]})</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span><span class="n">sum_str</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></code></pre></figure>
+
+<p>Now open Tensorboard as usual and view the rendered meshes.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">tensorboard <span class="nt">--logdir</span> summaries</code></pre></figure>
+
+<p><img src="/papertrail/assets/tb-sphere.jpg" />
+<br />
+<br />
+<img src="/papertrail/assets/tb-moebius.jpg" /></p>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/06/30/TensorBoard-3D-Quickstart.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Your Local GAN — Scribblings</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-01-12T00:00:00+00:00" itemprop="datePublished">Jan 12, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="n">tf</span>
+</code></pre></div></div>
+
+<h2 id="why-it-matters">Why it matters</h2>
+<ul>
+  <li>Improves performance compared to SAGAN in terms of Frechet Inception Distance</li>
+</ul>
+
+<h2 id="dense-attention">Dense attention</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">DenseAttention</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dense_key</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dense_query</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dense_value</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+        <span class="s">"""
+        X: has shape (Nx, Ex)
+        Y: has shape (Ny, Ey)
+        """</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense_key</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="c1"># (Ex, E)
+</span>        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense_query</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="c1"># (Ey, E)
+</span>        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense_value</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="c1"># (Ex, Ev)
+</span>        
+        <span class="n">select</span> <span class="o">=</span> <span class="n">query</span> <span class="o">@</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="c1"># (Ey, Ex)
+</span>        <span class="n">prob</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">select</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">prob</span> <span class="o">@</span> <span class="n">value</span> <span class="c1"># (Ey, Ev)
+</span></code></pre></div></div>
+
+<h2 id="the-query-key-value-idea">The query, key, value idea</h2>
+
+<p>This is a characterisation of the attention mechanism, where the <code class="highlighter-rouge">query</code> matrix contains a set of $E_Y$ “queries” in the form of $E$ dimensional vectors. The <code class="highlighter-rouge">key</code> matrix can be regarded a set of $E_X$. The <code class="highlighter-rouge">value</code> matrix contains $E_X$ values corresponding to the keys.</p>
+
+<p>When we query the value at a key in lookup table e.g. <code class="highlighter-rouge">lookup_table[key]</code> for a python dict we know which key we want to query. Here however we don’t know what key we want to look-up. Instead we find a probability matrix $P = \text{softmax}(W_QW_K^T)$ where $P_{ab}, a \in [0, E_Y), b \in [0, E_X)$ indicates the probability that that key $b$ is relevant to query $a$.</p>
+
+<p>Thus the lookup step leading to a single value is replaced by a weighted sum of the values, $P_aW_V$ for query $a$.</p>
+
+<h2 id="sparse-attention">Sparse attention</h2>
+
+<ul>
+  <li>Complexity for a query is quadratic since it needs dot products of each query to all the keys.
+    <ul>
+      <li>If there are $K$ keys and the query/key vector dimension is $E$, since each dot product has a complexity of $O(E)$ if $K = O(E)$ then the total complexity per query will be $O(E^2)$.</li>
+    </ul>
+  </li>
+  <li>Instead separate attention heads are used where in each step a query attends only to a selected number of keys $K’« E$ so the total complexity per query will be $O(E)$.</li>
+  <li>The idea is that even though in one layer the elements of the output only attend to a few of the elements of the input, if the attention masks are “wired” properly, then information can flow from all elements of the input to all elements of the output</li>
+  <li>The formulation was not defined in this paper but based on the diagrams in the paper it looks like the following.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_first_mask</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s">'ltr'</span><span class="p">):</span>
+    <span class="n">sqrt_n</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">inds_base</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">band_part</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">sqrt_n</span><span class="p">,</span> <span class="n">sqrt_n</span><span class="p">)),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="n">shifts</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="n">sqrt_n</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">],</span> <span class="n">inds_base</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="n">shifts</span> <span class="o">+</span> <span class="n">inds_base</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">inds</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">scatter_nd</span><span class="p">(</span><span class="n">indices</span><span class="o">=</span><span class="n">inds</span><span class="p">,</span>
+                         <span class="n">updates</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inds</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> 
+                         <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s">'rtl'</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">mask</span>
+
+<span class="k">def</span> <span class="nf">get_second_mask</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s">'ltr'</span><span class="p">):</span>
+    <span class="n">sqrt_n</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">base_block</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n</span><span class="p">,</span> <span class="n">sqrt_n</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">])],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">base_block</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">sqrt_n</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s">'rtl'</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">mask</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mask</span>
+
+<span class="k">def</span> <span class="nf">get_masks</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">[</span><span class="s">'ltr'</span><span class="p">,</span> <span class="s">'rtl'</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="s">'n must be a square number but is {}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">sqrt_n</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">mask1</span> <span class="o">=</span> <span class="n">get_first_mask</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+    <span class="n">mask2</span> <span class="o">=</span> <span class="n">get_second_mask</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mask1</span><span class="p">,</span> <span class="n">mask2</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_mask</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s">'white'</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">'Reds'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">();</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">);</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">);</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">16</span><span class="p">));</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">16</span><span class="p">));</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">);</span>
+    
+<span class="k">def</span> <span class="nf">plot_masks</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s">'ltr'</span><span class="p">):</span>
+    <span class="n">m1</span><span class="p">,</span> <span class="n">m2</span> <span class="o">=</span> <span class="n">get_masks</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+    <span class="n">m1</span> <span class="o">=</span> <span class="n">m1</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="n">m2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">plot_mask</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">'Step 0'</span><span class="p">)</span>
+    <span class="n">plot_mask</span><span class="p">(</span><span class="n">m2</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">'Step 1'</span><span class="p">)</span>
+    <span class="n">plot_mask</span><span class="p">(</span><span class="n">m1</span> <span class="o">+</span> <span class="p">(</span><span class="n">m2</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s">'Both steps'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s">'Masks for {} pattern'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">upper</span><span class="p">()),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s">'bold'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot_masks</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+<span class="n">plot_masks</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s">'rtl'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/Your_Local_GAN/Your_Local_GAN_8_0.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Your_Local_GAN/Your_Local_GAN_8_1.png" alt="png" /></p>
+
+<h2 id="reduction-in-complexity">Reduction in complexity</h2>
+<ul>
+  <li>If <code class="highlighter-rouge">mask[i,j]</code> is 1 then <code class="highlighter-rouge">pixel[i]</code> (of the output I think) attends to <code class="highlighter-rouge">pixel[j]</code> (of the input I think)</li>
+  <li>In the first mask, the lower or upper triangle part of a matrix of size $\sqrt{n}$ is replicated along the diagonal, so $\sqrt{n}$ matrices of size $O\left(\left(\sqrt{n}\right)^2\right) = O(n)$ so that the total number of active “paths” is $O\left(n \sqrt{n}\right) &lt; O(n^2)$.</li>
+  <li>In the second case every $\sqrt{n}$-th column is all ones plus all the diagonal entries and as there are $\sqrt{n}$ such columns each with $n$ elements, and there $n$ diagnonal elements, again there are $O\left(n \sqrt{n}\right) &lt; O(n^2)$ active paths.</li>
+</ul>
+
+<h3 id="questions">Questions:</h3>
+<ul>
+  <li>Is my formulation the right one?</li>
+  <li>How does it relate to attention mechanism in Sparse Transformer paper?</li>
+  <li>Do the feature maps have to be square (like I have assumed) and if not how should the mechanism be modified?</li>
+</ul>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/01/12/Your-Local-GAN.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

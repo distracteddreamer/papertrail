@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Classification and contrastive semantic alignment (CCSA)</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-01-12T00:00:00+00:00" itemprop="datePublished">Jan 12, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on the paper <a href="https://arxiv.org/abs/1709.10190">Unified Deep Supervised Domain Adaptation and Generalization</a>. All mistakes are my own.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="n">tf</span>
+</code></pre></div></div>
+
+<h2 id="the-problem">The problem</h2>
+
+<ul>
+  <li>Source and target datasets $D_S, D_T$ with covariate shift between the respective distributions.</li>
+  <li>Same set of classes for both datasets</li>
+  <li>Both may have large number of datapoints (e.g. images) but in $D_T$ most of the points are unlabelled</li>
+  <li>A model trained on $D_S$ will typically not do well on $D_T$ unless it is finetuned on $D_T$ but if the model is deep, then the lack of labels for $D_T$ means we probably can’t finetune it successfully.</li>
+</ul>
+
+<h2 id="solution">Solution</h2>
+<ol>
+  <li>Map inputs $\mathcal{X}_S$ and $\mathcal{X}_T$ to a common embedding space $Z$ via functions $g_i: \mathcal{X}_i \rightarrow \mathcal{Z}$.</li>
+  <li>Since embeddings $\mathcal{Z}$ assumed to be domain invariant, they can be mapped to a single label space $\mathcal{Y}$ via a function $h: \mathcal{Z} \rightarrow \mathcal{Y}$</li>
+</ol>
+
+<ul>
+  <li>The model function for domain $i$ is $f_i = h \circ g_i$.</li>
+  <li>Usually $g$ can be shared between domains e.g. can be a ConvNet for images.</li>
+  <li>The feature network $g$ is trained using both $D_S$ and $D_T$</li>
+  <li>The classifier $h$ is trained initially only on $D_S$ and is later fine-tuned on $D_T$</li>
+</ul>
+
+<h2 id="domain-invariance">Domain invariance</h2>
+
+<ul>
+  <li>Domain invariance of $Z$ can enforced by making the probability distributions of the embeddings from each domain align.</li>
+  <li>In practice, due to lack of samples from the target domain, the distance between distributions is approximated by the sum of pairwise distances between embeddings.</li>
+</ul>
+
+<h3 id="semantic-alignment">Semantic alignment</h3>
+<ul>
+  <li>Regardless of domain:
+    <ul>
+      <li>Samples with the same label should be nearby in the embedding space</li>
+      <li>Samples with different labels should far apart</li>
+    </ul>
+  </li>
+  <li>
+    <p>The model can be trained to produce semantically aligned domain invariant embeddings by optimising the following losses:</p>
+
+    <ul>
+      <li>Maximise similarity between samples with different labels</li>
+    </ul>
+
+    <script type="math/tex; mode=display">\sum_a\sum_{ij, y_i^s = y_i^t=a}k\left(g\left(x_i^s\right), 
+                  g\left(x_j^t\right)\right)</script>
+
+    <ul>
+      <li>Minimise distance between samples with same labels</li>
+    </ul>
+
+    <script type="math/tex; mode=display">\sum_{ab, a\neq b}\sum_{ij, y_i^s =a, y_i^t =b}d\left(g\left(x_i^s\right), 
+                  g\left(x_j^t\right)\right)</script>
+  </li>
+</ul>
+
+<p>Note that in the code below we take the mean of similarity and distance losses separately for each class represented in the batch based on the following from the paper:</p>
+
+<blockquote>
+  <p>to balance the classification versus the contrastive semantic alignment portion of the loss (5), (7) and (8) are normalized</p>
+</blockquote>
+
+<p>where (8) is the equation for the similarity loss and (7) for the distance loss, for a single class. This seems to suggest that the single class losses are normalised.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">distance_loss</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">((</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span>
+
+<span class="k">def</span> <span class="nf">similarity_loss</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">margin</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">margin</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">distance_loss</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">diff</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span>
+
+<span class="k">def</span> <span class="nf">separation_loss</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">margin</span><span class="p">):</span>
+    <span class="n">select</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">not_equal</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+    
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">boolean_mask</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">select</span><span class="p">)</span> <span class="c1"># (M, F)
+</span>    <span class="n">x2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">boolean_mask</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">select</span><span class="p">)</span> <span class="c1"># (M, F)
+</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">boolean_mask</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">select</span><span class="p">)</span> <span class="c1"># (M)
+</span>    
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">similarity_loss</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">margin</span><span class="p">)</span>
+    <span class="n">n_unique</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="n">losses</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unsorted_segment_mean</span><span class="p">(</span><span class="n">sim</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">n_unique</span><span class="p">)</span> 
+    
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">semantic_alignment_loss</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+    <span class="n">select</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+    
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">boolean_mask</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">select</span><span class="p">)</span> <span class="c1"># (M, F)
+</span>    <span class="n">x2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">boolean_mask</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">select</span><span class="p">)</span> <span class="c1"># (M, F)
+</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">boolean_mask</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">select</span><span class="p">)</span> <span class="c1"># (M)
+</span>    
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">distance_metric</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>  <span class="c1"># (M,)
+</span>    <span class="n">n_unique</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="n">losses</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unsorted_segment_mean</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">n_unique</span><span class="p">)</span> 
+    
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="domain-generalization">Domain generalization</h2>
+<ul>
+  <li>Here there may be any number of domains and all of the losses use all of the domains</li>
+  <li>The target domain is regarded as unknown</li>
+  <li>The goal is to make $g$ map to a domain invariant embedding space such that the model would perform well on any arbitrary target domain</li>
+  <li>As the number of pairs for pairwise losses grows quadratically with the number of domains, pairs may be selected randomly - for example they mention that for a given sample (within a batch???), they randomly select a fixed number say 2 or 5 samples from each other source domain to pair with it</li>
+</ul>
+
+<h2 id="architecture">Architecture</h2>
+
+<p>They report two kinds of architectures</p>
+
+<ol>
+  <li>Pre-computed followed by some trained layers to generate embeddings followed by classifier — for example for their VLCS domain generalisation experiment they use</li>
+</ol>
+
+<script type="math/tex; mode=display">\underbrace{\text{(DeCaF-fc6 features)-fc-fc}}_g\text{-}\underbrace{\text{fc-softmax}}_h</script>
+
+<ol>
+  <li>End-to-end trained feature network with classifier on top — for example for the MNIST domain adaptation experiment they use:</li>
+</ol>
+
+<script type="math/tex; mode=display">\underbrace{\text{conv5x5-maxpool-conv5x5-maxpool-fc-fc}}_g\text{-}
+\underbrace{\text{fc-softmax}}_h</script>
+
+<h2 id="results">Results</h2>
+<h3 id="office-dataset">Office dataset</h3>
+<ul>
+  <li>Performance reported for pairwise domain adaptation for three pairs of domains from $\mathcal{W}, \mathcal{A}, \mathcal{D}$</li>
+  <li>Does better on average compared to other models both supervised and unsupervised.</li>
+  <li>This is the case of various settings (training and testing on all or a selection of classes, training on some and testing on other classes).</li>
+  <li>Improvement over other models most noticeable where domain shifts are greater (between $\mathcal{W} and \mathcal{A}$, and between $\mathcal{A} and \mathcal{D}$).</li>
+</ul>
+
+<h3 id="mnist-usps">MNIST-USPS</h3>
+<ul>
+  <li>Does better than other models as the number of samples from the target domain is increased.</li>
+</ul>
+
+<h3 id="domain-generalization-1">Domain generalization</h3>
+<ul>
+  <li>Experiments are done on the VLCS and MNIST rotated datasets and their performance averaged across different pairs of source datasets and target datasets is better other models, for some of the pairs the best.</li>
+</ul>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/01/12/CCSA.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

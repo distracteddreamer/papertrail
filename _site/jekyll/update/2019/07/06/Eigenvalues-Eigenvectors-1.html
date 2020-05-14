@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Notes on eigenvalues and eigenvectors, Part 1</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-07-06T11:51:32+01:00" itemprop="datePublished">Jul 6, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my study notes for <a href="http://linear.ups.edu/html/section-EE.html">Eigenvalues and Eigenvectors</a> from <a href="http://linear.ups.edu/html/fcla.html">A First Course in Linear Algebra</a> by Robert A. Beezer. All mistakes are my own. Please see the text for detailed explanations and examples.</p>
+
+<h1 id="what-are-eigenvalues-and-eigenvectors">What are eigenvalues and eigenvectors?</h1>
+<ul>
+  <li>For a square matrix $A$ there exist vectors $x$ such the transformation $A\mathbf{x}$ is a simple scaling $\lambda\mathbf{x}$.</li>
+  <li>An eigenvalue, eigenvector pair for $A$ is a scalar $\lambda$ and a non -zero vector $\mathbf{x}$ such that:
+  <script type="math/tex">A\mathbf{x}=\lambda\mathbf{x}</script>.</li>
+  <li>Every square matrix has an eigenvalue.</li>
+</ul>
+
+<h1 id="characteristic-polynomial">Characteristic polynomial</h1>
+<ul>
+  <li>Let $A$ be an $n \times n$ matrix</li>
+  <li>$p_A(\lambda) = \det(A - \lambda I_n)$</li>
+  <li>The solutions of $p_A(\lambda) = 0$ are the eigenvalues of $A$.</li>
+  <li>
+    <p>Proof that $\lambda$ is an eigenvalue if and only if $p_A(\lambda) = 0$:</p>
+
+    <script type="math/tex; mode=display">% <![CDATA[
+\begin{align} &\lambda \text{ eigenvalue of } A  
+ \\&\Leftrightarrow \exists \mathbf{x} \neq \mathbf{0} \text{ s.t. } A\mathbf{x} = \lambda\mathbf{x} 
+  \\&\Leftrightarrow  (A - \lambda I_n)\mathbf{x} = \mathbf{0}  
+  \\&\Leftrightarrow (A - \lambda I_n) \text{ }\text{ is singular}
+ 	\\&\Leftrightarrow \det(A - \lambda I_n) = 0
+  \\&\Leftrightarrow p_A(\lambda) = 0 \end{align} %]]></script>
+  </li>
+  <li>The eigenvectors corresponding to each solution are the set of non-zero vectors in the null space of $(A - \lambda I_n)\mathbf{x}$ (see proof below).</li>
+</ul>
+
+<h1 id="eigenspace-of-a-matrix">Eigenspace of a matrix</h1>
+<ul>
+  <li>$\xi_A(\lambda)$ is the set of eigenvectors of $A$ corresponding to the eigenvalue $\lambda$ plus the zero vector $\mathbf{0}$.</li>
+  <li>
+    <p>It is a subspace because any linear combination of vectors in $\xi_A(\lambda)$  is also in $\xi_A(\lambda)$ :</p>
+
+    <script type="math/tex; mode=display">\mathbf{u}, \mathbf{v} \in \xi_A(\lambda), \mathbf{w} 
+  = \alpha\mathbf{u} + \beta\mathbf{v}
+  \\ A\mathbf{w} = A(\alpha\mathbf{u} + \beta\mathbf{v})
+  = \alpha A\mathbf{u} + \beta A\mathbf{v}
+  = \alpha \lambda\mathbf{u} + \beta \lambda\mathbf{v} 
+  = \lambda(\alpha\mathbf{u} + \beta\mathbf{v})
+  = \lambda \mathbf{w}</script>
+
+    <p>$\implies \mathbf{w}$ is eigenvector of $A$ with eigenvalue $\lambda$ or $\mathbf{w} = \mathbf{0}$, both of of which are in the set $\xi_A(\lambda)$ so $\xi_A(\lambda)$ is a subspace.</p>
+  </li>
+  <li>
+    <p>It is the nullspace of $A - \lambda I_n$ i.e. $\xi_A(\lambda) = \mathcal{N}(A - \lambda I_n)$:</p>
+
+    <script type="math/tex; mode=display">\mathbf{x} \in \xi_A(\lambda)
+  \Leftrightarrow A\mathbf{x} = \lambda \mathbf{x}, \mathbf{x} \neq 0 \text{ }\text{or}\text{ } \mathbf{x} = \mathbf{0}
+  \Leftrightarrow (A - \lambda I_n)\mathbf{x} = \mathbf{0}
+  \Leftrightarrow \mathbf{x} \in \mathcal{N}(A - \lambda I_n)</script>
+  </li>
+</ul>
+
+<h1 id="multiplicities-of-an-eigenvalue">Multiplicities of an eigenvalue</h1>
+<ul>
+  <li><strong>Algebraic multiplicity</strong> is the highest power $p$ of $(x - \lambda)$ such that $(x - \lambda)^p$ exactly divides $p_A(x)$ i.e. the number of times $\lambda$ is repeated root of the characteristic polynomial.</li>
+  <li><strong>Geometric multiplicity</strong> is the dimension of the eigenspace of $\lambda$, $\xi_A(\lambda)$.</li>
+</ul>
+
+<h1 id="references">References</h1>
+<p><a href="http://linear.ups.edu/html/section-EE.html">http://linear.ups.edu/html/section-EE.html</a></p>
+
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/07/06/Eigenvalues-Eigenvectors-1.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

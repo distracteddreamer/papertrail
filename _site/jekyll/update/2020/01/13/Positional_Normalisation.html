@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Postional Normalisation</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-01-13T22:58:02+00:00" itemprop="datePublished">Jan 13, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on the paper <a href="https://arxiv.org/abs/1907.04312">Positional Normalization</a>. All mistakes are my own.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="n">tf</span>
+</code></pre></div></div>
+
+<h2 id="positional-normalisation-pono">Positional Normalisation (PONO)</h2>
+
+<ul>
+  <li>The feature map is normalised with channel-wise moments</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PONO</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channels_first</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">moments_only</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels_first</span> <span class="o">=</span> <span class="n">channels_first</span>
+        <span class="c1"># In case we just want the moments to use for moment shortcut
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">moments_only</span> <span class="o">=</span> <span class="n">moments_only</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PONO</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    
+    <span class="o">@</span><span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">_channel_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels_first</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">var</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">moments</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">std</span>
+        <span class="k">if</span> <span class="n">moments_only</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mu</span><span class="p">,</span> <span class="n">std</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">std</span>
+</code></pre></div></div>
+
+<h2 id="moment-shortcut-ms">Moment shortcut (MS)</h2>
+
+<ul>
+  <li>Akin to skip connection exception that it uses the moments of the output from a layer of the encoder to transform the input to a corresponding layer in the decoder.</li>
+  <li>Explicit bias given to decoder layer so that its activations have similar statistics to corresponding encoder layer.</li>
+</ul>
+
+<h3 id="dynamic-moment-shortcut-dms">Dynamic moment shortcut (DMS)</h3>
+<ul>
+  <li>The difference here is that the moments are input to a small ConvNet that outputs the parameters used to transform the feature map</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MomentShortcut</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channels_first</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                 <span class="n">net</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels_first</span> <span class="o">=</span> <span class="n">channels_first</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MomentShortcut</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        
+    <span class="o">@</span><span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">_channel_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels_first</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+        <span class="c1"># mu, std are outputs of PONO or other network
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">mu</span><span class="p">,</span> <span class="n">std</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_axis</span><span class="p">)</span>
+            <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_axis</span><span class="p">,</span> <span class="n">num_or_size_splits</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">mu</span><span class="p">,</span> <span class="n">std</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">beta</span>
+        <span class="k">return</span> <span class="n">x</span>
+</code></pre></div></div>
+
+<h2 id="results">Results</h2>
+
+<h3 id="effect-of-the-different-components">Effect of the different components</h3>
+
+<ul>
+  <li>
+    <p>In almost all experiments combination of PONO-MS and other normalisation method improves FID of CycleGAN.</p>
+  </li>
+  <li>
+    <p>Using PONO-MS along with other methods also does better compared to PONO-MS alone.</p>
+  </li>
+  <li>
+    <p>PONO-MS tends to be better than just MS, whilst PONO-DMS, with a suitable architecture (which seems to be task-dependent), is able to improve over PONO-DMS</p>
+  </li>
+</ul>
+
+<h3 id="image-translation">Image translation</h3>
+<ul>
+  <li>For <strong>CycleGAN</strong>, FID is better than baseline and best out all other models compared for three of four cases (for Map→Photo another model is better but PONO-MS is better for Photo→Map, which they try to explain in the paper)</li>
+  <li>For <strong>Pix2pix</strong>, FID improves for all tasks although sometimes only marginally and LPIPS typically improves but where it doesn’t is close to the baseline (i.e. does not make it worse).</li>
+</ul>
+
+<h3 id="style-transfer">Style transfer</h3>
+<ul>
+  <li>Typical model
+    <ul>
+      <li>Encoder to get content from source</li>
+      <li>Encoder to get style features from target</li>
+      <li>Decoder that takes both features and makes the output</li>
+    </ul>
+  </li>
+  <li>PONO-MS improves performance using both MUNIT and DRIT on almost all the performance metrics on both the experiments (Cat ↔ Dog, Portrait ↔ Photo)</li>
+  <li>Improvement is only marginal for DRIT and least in both for FID (which is a data level metric whilst others are instance level and they suggest that this might be the reason)</li>
+</ul>
+
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/01/13/Positional_Normalisation.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

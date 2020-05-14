@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">[WIP] Object Detection Deconstructed — Boxes</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-05-05T17:46:47+01:00" itemprop="datePublished">May 5, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="n">tf</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">skimage.transform</span> <span class="kn">import</span> <span class="n">resize</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+</code></pre></div></div>
+
+<h2 id="bounding-boxes">Bounding boxes</h2>
+
+<p>In the simplest form you locate an object within an image (or a volume) by drawing a box around it. Bounding boxes can be represented in a number ways. We will focus on the $xyxy$ format where the box is represented by its top-left and bottom-right corner co-ordinates $[x_1, y_1, x_2, y_2]$ but will also sometimes use the $whxy$ format where we specify the width, height, and $x$ and $y$ coordinates of the centre, $[w, h, x_\text{centre}, y_\text{centre}]$.</p>
+
+<p>Note that in our definition $x_2$ and $y_2$ will be <em>inside</em> the box. But these can vary in elsewhere. Usually it won’t make a huge difference but will cause problems with boxes at the edge of an image.</p>
+
+<p>The relationship between the bounding box, its centre and dimensions is shown below. Note that the coordinates $[x_1, y_1, x_2, y_2]$ are <em>inside</em> the bounding box and are located at the centre of a unit square.</p>
+
+<p><img src="/papertrail/assets/ODD_Boxes/bbox.jpg" alt="png" /></p>
+
+<p>Here it is in code. From the start we will work with arbitrary sized tensors of boxes. These can have any number of dimensions and the only rule is that the size of the last dimension is 4.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">to_whxy</span><span class="p">(</span><span class="n">box</span><span class="p">):</span>
+    <span class="s">"""Return width, height, x centre, and y centre for an
+    array of boxes.
+    
+    Adapted from https://github.com/facebookresearch/maskrcnn-benchmark
+    
+    box: An arbitrary dimensional tensor with a final dimension of size 4
+    
+    """</span>
+    
+    <span class="c1"># Add 1 to get dims since x2,y2 inside 
+</span>    <span class="n">w</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">box</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">box</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">x_ctr</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">y_ctr</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">x_ctr</span><span class="p">,</span> <span class="n">y_ctr</span> 
+</code></pre></div></div>
+
+<p>To plot the bounding box on a grid via <code class="highlighter-rouge">plot_rectangle</code> we plot draw a rectangle with top-left corner $(x_1 - 0.5, y_1 - 0.5)$ and bottom-right corner $(x_1 + w + 05, y_1 + w + 0.5) = (x_2 + 1.5, y_2 + 1.5)$, the $\pm 0.5$ shift because of the convention that $x, y$ and using $x2 + 1, y2 + 1$ as $x2, y2$ are assumed to be inside the box.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_rectangle</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="s">'b'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+    <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">box</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">xc</span><span class="p">,</span> <span class="n">yc</span> <span class="o">=</span> <span class="n">to_whxy</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">height</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">clr</span><span class="p">,</span>
+                               <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">))</span>
+    
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plot_rectangle</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">ax</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mf">4.</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mf">4.</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">4.</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">4.</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s">'x'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/ODD_Boxes/output_7_0.png" alt="png" /></p>
+
+<p>Note that <code class="highlighter-rouge">matplotlib</code> follows the convention above for plotting images. The documentation for <code class="highlighter-rouge">imshow</code> states:</p>
+<blockquote>
+  <p>Pixels have unit size in data coordinates. Their centers are on
+    integer coordinates, and their center coordinates range from 0 to
+    columns-1 horizontally and from 0 to rows-1 vertically.</p>
+</blockquote>
+
+<p>This means we can plot the bounding boxes on top in the same fashion.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">img</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s">'hibiscus-3601937_1920.jpg'</span><span class="p">)</span>
+<span class="n">img</span> <span class="o">=</span> <span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s">'upper'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">);</span>
+
+<span class="n">bbox1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">85</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">315</span><span class="p">,</span> <span class="mi">220</span><span class="p">]</span>
+<span class="n">bbox2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">330</span><span class="p">,</span>   <span class="mi">140</span><span class="p">,</span> <span class="mi">650</span><span class="p">,</span> <span class="mi">480</span><span class="p">]</span>
+
+<span class="n">plot_rectangle</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">bbox1</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="s">'w'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">);</span>
+<span class="n">plot_rectangle</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">bbox2</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="s">'w'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/ODD_Boxes/output_9_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">img2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s">'flowers-4365828_1920.jpg'</span><span class="p">)</span>
+<span class="n">img2</span> <span class="o">=</span> <span class="n">resize</span><span class="p">(</span><span class="n">img2</span><span class="p">,</span> <span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span>
+<span class="n">bbox3</span> <span class="o">=</span> <span class="p">[</span><span class="mi">130</span><span class="p">,</span>   <span class="mi">150</span><span class="p">,</span> <span class="mi">505</span><span class="p">,</span> <span class="mi">440</span><span class="p">]</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">);</span>
+<span class="n">plot_rectangle</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">bbox3</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="s">'w'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/ODD_Boxes/output_10_0.png" alt="png" /></p>
+
+<p>Note that $x$ corresponds to columns and that $y$ corresponds to rows. To crop a box from the image slice it between $x1$ and $x2 + 1 = x1 + w$ along the column dimension and $y1$ and $y2 + 1 = y1 + h$ along the row dimenson. This will give us the same box as box if we assume the pixel at index $(y=i, x=j)$ in the grid to be a unit square centred at $(x y)$.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax0</span><span class="p">,</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="n">crop1</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">bbox1</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="n">bbox1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bbox1</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">bbox1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">crop2</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">bbox2</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="n">bbox2</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bbox2</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">bbox2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">crop3</span> <span class="o">=</span> <span class="n">img2</span><span class="p">[</span><span class="n">bbox3</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="n">bbox3</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bbox3</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">bbox3</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+<span class="n">ax0</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">crop1</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">crop2</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">crop3</span><span class="p">)</span>
+<span class="n">ax0</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">);</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">);</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/ODD_Boxes/output_12_0.png" alt="png" /></p>
+
+<h1 id="anchor-boxes">Anchor boxes</h1>
+
+<p>How do you predict bounding boxes for an image? If you understand anchor boxes then you are well on your way to understanding deep learning based object detection.</p>
+
+<p>The approach involves taking lots of boxes of different sizes and aspect ratios evenly spaced apart on a grid across the image. We call these “anchor boxes”. The  you have a large enough combination of sizes and scales, then then there is a good chance that one or more of them bound the objects in the image fairly well. This turns the problem into something of a classification task whereby you try to predict what is inside each region. For example, does it have an object or not and if so what is the class label of that object?</p>
+
+<p>We can keep all those boxes which confidently predict an object and discard the rest. However the initial boxes are not good enough by themselves so we also want the model to predict a 
+linear transformation of the boxes consisting of stretching and translation that till turn them into boxes that better fit the objects.</p>
+
+<h1 id="anchor-generation">Anchor generation</h1>
+
+<p>Let us start with a single output feature map that has a stride of $S$ with respect to the input. We also have a set of anchor boxes of different areas and aspect ratios (ARs). Let us say all these possible combinations of the areas [128^2, 256^2, 512^2] and ARs [1:2, 1:1, 2:1] which gives us 9 different boxes. These boxes are replicated across all the pixels in the feature map so that each one is responsible for finding objects in a part of the image. (It is also possible to have a strided grid where we skip pixels but we will assume for now that all the pixels are used).</p>
+
+<p>These boxes will be defined with respect to the original input dimensions. Each of the pixels maps to an $S \times S$ square of the input. The centre of the pixel is at the centre of this $S x S$ box. So suppose $S=16$ which is the stride of the output of the 4 block of ResNet50 or ResNet101 with respect to the input. For instance the ImageNet imagesize of 224 x 224 the output of the fourth block is $14 x 14$. For the top-left $S \times S$ region in input $[x_1, y_1, x_2, y_2] = [0, 0, 15, 15]$ leading to centre coordinates of $[7.5, 7.5]$</p>
+
+<p>To construct our grid of anchor boxes let us first split the input image into a grid of $S \times S$ non-overlapping cells each corresponding to a pixel of the output feature map. We will always assume that our image dimensions are exactly divisible by $S$ since this can been achieved by padding the image appropriately. These are then the base boxes. They will be rescaled into different sizes and aspect ratios to produce a set of concentric anchor boxes. The predictions contained in at each pixel location of the output feature map correspond to these anchor boxes (how exactly we will discuss later).</p>
+
+<p><img src="/papertrail/assets/ODD_Boxes/anchors12x12_resized.jpg" alt="png" /></p>
+
+<h1 id="implementing-anchor-generation">Implementing anchor generation</h1>
+
+<p>Another way to think about anchor generation, which is how we implement it, is first to consider just the top left corner $S \times S$ box in the grid. We rescale it as described to generate a set of anchors. This is implemented in <code class="highlighter-rouge">generate_anchors</code>. Once we have a set of anchors, we then translate them across and down the image with a step size of $S$ so that we get a set of anchors concentric with each of the cells in the image.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">generate_anchors</span><span class="p">(</span>
+    <span class="n">stride</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span> <span class="n">aspect_ratios</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">):</span>
+    <span class="s">"""
+    Adapted from https://github.com/facebookresearch/maskrcnn-benchmark
+    """</span>
+    
+    <span class="n">sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
+    <span class="n">aspect_ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aspect_ratios</span><span class="p">)</span>
+    
+    <span class="n">base_anchor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">stride</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="nb">float</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="c1"># (1,)
+</span>    <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">x_ctr</span><span class="p">,</span> <span class="n">y_ctr</span> <span class="o">=</span>  <span class="n">to_whxy</span><span class="p">(</span><span class="n">base_anchor</span><span class="p">)</span> <span class="c1"># (1,)
+</span>    <span class="n">base_area</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">h</span>
+    
+    
+    <span class="n">widths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">base_area</span> <span class="o">/</span> <span class="n">aspect_ratios</span><span class="p">))</span> <span class="c1"># (A,)
+</span>    <span class="n">heights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">round</span><span class="p">(</span><span class="n">widths</span> <span class="o">*</span> <span class="n">aspect_ratios</span><span class="p">)</span> <span class="c1"># (A,)
+</span>    
+    <span class="n">scales</span> <span class="o">=</span> <span class="n">sizes</span> <span class="o">/</span> <span class="n">stride</span>
+    <span class="n">widths</span> <span class="o">=</span> <span class="n">scales</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">widths</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span> <span class="c1"># (A, S)
+</span>    <span class="n">heights</span> <span class="o">=</span> <span class="n">scales</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">heights</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span>  <span class="c1"># (A, S)
+</span>    
+    <span class="c1"># Each is (A, S)
+</span>    <span class="n">x1</span> <span class="o">=</span> <span class="n">x_ctr</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">widths</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">y_ctr</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">heights</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">x_ctr</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">widths</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">y_ctr</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">heights</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">anchors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="c1">#(A, S, 4)
+</span>    
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">anchors</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span> <span class="c1"># (A*S, 4)
+</span></code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">anchors</span> <span class="o">=</span> <span class="n">generate_anchors</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">anchors</span><span class="p">:</span>
+    <span class="n">plot_rectangle</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="n">anchors</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="nb">min</span><span class="p">()</span> <span class="o">-</span> <span class="mi">25</span><span class="p">,</span> <span class="n">anchors</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="nb">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">anchors</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="nb">min</span><span class="p">()</span> <span class="o">-</span> <span class="mi">25</span><span class="p">,</span> <span class="n">anchors</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="nb">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">25</span><span class="p">);</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">to_whxy</span><span class="p">(</span><span class="n">box</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="s">'cx'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([</span><span class="mf">7.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([</span><span class="mf">7.5</span><span class="p">])</span>
+<span class="n">plot_rectangle</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="n">ax</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="s">'r'</span><span class="p">);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">();</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/ODD_Boxes/output_18_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">grid_anchors</span><span class="p">(</span><span class="n">base_anchors</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">img_width</span><span class="p">,</span> <span class="n">img_height</span><span class="p">):</span>
+    <span class="s">"""
+    base_anchors: (N, 4)
+    H = height
+    W = width
+    
+    Adapted from https://github.com/facebookresearch/maskrcnn-benchmark
+    """</span>
+    <span class="n">shifts_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span> <span class="o">*</span> <span class="n">stride</span><span class="p">,</span> <span class="n">stride</span><span class="p">)</span> <span class="c1"># (W,)
+</span>    <span class="n">shifts_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">*</span> <span class="n">stride</span><span class="p">,</span> <span class="n">stride</span><span class="p">)</span> <span class="c1"># (H,)
+</span>    
+    <span class="c1"># Indexing is 'xy' by default in np/tf but 'ij' in pytorch 
+</span>    <span class="c1"># (so they reverse these in the mrcnn benchmark code)
+</span>    <span class="n">shifts_x</span><span class="p">,</span> <span class="n">shifts_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">shifts_x</span><span class="p">,</span> <span class="n">shifts_y</span><span class="p">)</span> 
+    
+    <span class="n">shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">shifts_x</span><span class="p">,</span> <span class="n">shifts_y</span><span class="p">,</span> <span class="n">shifts_x</span><span class="p">,</span> <span class="n">shifts_y</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># (H, W, 4)
+</span>    
+    <span class="c1"># (H, W, 1, 4) + (1, 1, N, 4) -&gt; (H, W, N, 4)
+</span>    <span class="n">anchors</span> <span class="o">=</span> <span class="n">shifts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">base_anchors</span><span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span>
+    
+    <span class="n">inside</span> <span class="o">=</span> <span class="p">((</span><span class="n">anchors</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="nb">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> 
+             <span class="p">(</span><span class="n">anchors</span> <span class="o">&lt;=</span> <span class="p">[</span><span class="n">img_width</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">img_height</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">img_width</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">img_height</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="nb">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">anchors</span><span class="p">,</span> <span class="n">inside</span>
+</code></pre></div></div>
+
+<p>Let us say that we have an input image size of $H \times W$ and $A$ area/AR combinations. Thus we have a $H/S \times W/S$ grid of $S \times S$ cells, each with $A$ anchor boxes so $A\cdot H \cdot W/S^2$ anchor boxes in total. Since the anchor boxes have an area typically much larger than $S^2$, as shown in the figure above, and they overlap quite a lot resulting in good coverage across the image but also making them difficult to visualise. Instead we will visualise a set of tiny anchors on the $12 \times 12$ input illustrated earlier.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sizes</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">aspect_ratios</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">stride</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">grid</span><span class="p">,</span> <span class="n">inside</span> <span class="o">=</span> <span class="n">grid_anchors</span><span class="p">(</span><span class="n">generate_anchors</span><span class="p">(</span><span class="n">stride</span><span class="p">,</span> <span class="n">sizes</span><span class="o">=</span><span class="n">sizes</span><span class="p">,</span> <span class="n">aspect_ratios</span><span class="o">=</span><span class="n">aspect_ratios</span><span class="p">),</span> <span class="n">stride</span><span class="p">,</span>
+                            <span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                            <span class="n">img_width</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">img_height</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">grid_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
+<span class="n">plot_rectangle</span><span class="p">(</span><span class="n">grid_bbox</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="s">'k'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">);</span>
+<span class="n">clrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">'coral'</span><span class="p">,</span> <span class="s">'blueviolet'</span><span class="p">,</span> <span class="s">'dodgerblue'</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>
+<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">box</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cell</span><span class="p">):</span>
+        <span class="n">plot_rectangle</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="n">clrs</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">to_whxy</span><span class="p">(</span><span class="n">box</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="s">'cx'</span><span class="p">)</span>
+    
+        
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">13.</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">13.</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/ODD_Boxes/output_21_0.png" alt="png" /></p>
+
+<p>The whole image can be regarded as a bounding box with coordinates $[0, 0, H-1, W-1]$. 
+The <code class="highlighter-rouge">inside</code> array returned by <code class="highlighter-rouge">grid_anchors</code> indicates whether the coordinates of each anchor box are bounded by the coordinates of the entire image bounding-box. 
+Notice that some of these boxes fall outside of the image grid. How do we handle these? We could clip them so that they fall within the image boundary. We could also merely discard them.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sizes</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">aspect_ratios</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">stride</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">grid</span><span class="p">,</span> <span class="n">inside</span> <span class="o">=</span> <span class="n">grid_anchors</span><span class="p">(</span><span class="n">generate_anchors</span><span class="p">(</span><span class="n">stride</span><span class="p">,</span> <span class="n">sizes</span><span class="o">=</span><span class="n">sizes</span><span class="p">,</span> <span class="n">aspect_ratios</span><span class="o">=</span><span class="n">aspect_ratios</span><span class="p">),</span> <span class="n">stride</span><span class="p">,</span>
+                            <span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                            <span class="n">img_width</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">img_height</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">'Num total boxes {}, num inside {}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">inside</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">inside</span><span class="o">.</span><span class="nb">sum</span><span class="p">()))</span>
+
+<span class="n">clrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">'coral'</span><span class="p">,</span> <span class="s">'blueviolet'</span><span class="p">,</span> <span class="s">'dodgerblue'</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">grid_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
+<span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">to_whxy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">]))</span>
+
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">clip</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]):</span>
+    <span class="n">plot_rectangle</span><span class="p">(</span><span class="n">grid_bbox</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="s">'k'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">);</span>
+
+    <span class="k">for</span> <span class="n">cell</span><span class="p">,</span> <span class="n">isin</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">)),</span> <span class="n">inside</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">))):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">box_in</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">isin</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">box_in</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">clip</span><span class="p">:</span>
+                    <span class="n">box</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">w</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">h</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">h</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="n">plot_rectangle</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">clr</span><span class="o">=</span><span class="n">clrs</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">to_whxy</span><span class="p">(</span><span class="n">box</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="s">'cx'</span><span class="p">)</span>
+    
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">'Boxes that cross image boundary are {}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span>
+        <span class="s">'clipped'</span> <span class="k">if</span> <span class="n">clip</span> <span class="k">else</span> <span class="s">'discarded'</span>
+    <span class="p">))</span>    
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">13</span><span class="p">);</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">13.</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">13.</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">();</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Num total boxes 81, num inside 69
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/ODD_Boxes/output_23_1.png" alt="png" /></p>
+
+<p>This is the approach adopted in the <a href="https://arxiv.org/abs/1506.01497">Faster-RCNN paper</a> which introduced the notion of anchor boxes:</p>
+
+<blockquote>
+  <p>During training, we ignore all cross-boundary anchors so they do not contribute to the loss.</p>
+</blockquote>
+
+<p>This is reason they give for discarding them</p>
+
+<blockquote>
+  <p>If the boundary-crossing outliers are not ignored in training, they introduce large, difficult to correct error terms in the objective, and training does not converge.</p>
+</blockquote>
+
+<p>However during testing they</p>
+
+<blockquote>
+  <p>[W]e clip [the boxes] to the image boundary.</p>
+</blockquote>
+
+<p>Next time we will discuss how predictions and ground truth bounding boxes are defined relative to anchors.</p>
+
+<h1 id="deltas">Deltas</h1>
+<p>Since we would like to make predictions for arbitrary sized images, instead of predicting bounding box coordinates, we predict parameters for a transform of the anchor boxes. The anchor bounding box is given as</p>
+
+<script type="math/tex; mode=display">[x_a, y_a, h_a, w_a]</script>
+
+<p>For the target bounding box $[x, y, h, w]$ we generate targets “deltas” $t = [t_x, t_y, t_w, t_h]$ as follows:</p>
+
+<script type="math/tex; mode=display">t_x = (x - x_a) / h_a \\
+t_y = (y - y_a) / w_a \\
+t_w =  \log(w / w_a) \\
+t_h = \log(h / h_a)</script>
+
+<p>and the predictions $p$ are the interpreted as follows:</p>
+
+<script type="math/tex; mode=display">p_x = (\hat{x} - x_a) / h_a \\
+p_y = (\hat{y} - y_a) / w_a \\
+p_w =  \log(\hat{w} / w_a) \\
+p_h = \log(\hat{h} / h_a)</script>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">split_coords_dims</span><span class="p">(</span><span class="n">box</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">box</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">:]</span>
+
+<span class="k">def</span> <span class="nf">box2delta</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+    <span class="n">box_coords</span><span class="p">,</span> <span class="n">box_dims</span> <span class="o">=</span> <span class="n">split_coords_dims</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+    <span class="n">ref_coords</span><span class="p">,</span> <span class="n">ref_dims</span> <span class="o">=</span> <span class="n">split_coords_dims</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+    <span class="n">delta_coords</span> <span class="o">=</span> <span class="p">(</span><span class="n">box_coords</span> <span class="o">-</span> <span class="n">ref_coords</span><span class="p">)</span> <span class="o">/</span> <span class="n">ref_dims</span>
+    <span class="n">delta_dims</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">box_dims</span> <span class="o">/</span> <span class="n">ref_dims</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">delta_coords</span><span class="p">,</span> <span class="n">delta_dims</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">delta2box</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+    <span class="n">delta_coords</span><span class="p">,</span> <span class="n">delta_dims</span> <span class="o">=</span> <span class="n">split_coords_dims</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span>
+    <span class="n">ref_coords</span><span class="p">,</span> <span class="n">ref_dims</span> <span class="o">=</span> <span class="n">split_coords_dims</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+    <span class="n">box_coords</span> <span class="o">=</span> <span class="n">ref_coords</span> <span class="o">+</span> <span class="p">(</span><span class="n">delta_coords</span> <span class="o">*</span> <span class="n">ref_dims</span><span class="p">)</span> 
+    <span class="n">box_dims</span> <span class="o">=</span> <span class="n">ref_dims</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">delta_dims</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">box_coords</span><span class="p">,</span> <span class="n">box_dims</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">([[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mf">15.</span><span class="p">,</span> <span class="mi">25</span><span class="p">]])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">([[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mf">16.</span><span class="p">,</span> <span class="mi">16</span><span class="p">]])</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">split_coords_dims</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>(&lt;tf.Tensor: shape=(1, 2), dtype=float32, numpy=array([[ 8., 12.]], dtype=float32)&gt;,
+ &lt;tf.Tensor: shape=(1, 2), dtype=float32, numpy=array([[15., 25.]], dtype=float32)&gt;)
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">split_coords_dims</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>(&lt;tf.Tensor: shape=(1, 2), dtype=float32, numpy=array([[8., 8.]], dtype=float32)&gt;,
+ &lt;tf.Tensor: shape=(1, 2), dtype=float32, numpy=array([[16., 16.]], dtype=float32)&gt;)
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">box2delta</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;tf.Tensor: shape=(1, 4), dtype=float32, numpy=
+array([[ 0.        ,  0.25      , -0.06453852,  0.4462871 ]],
+      dtype=float32)&gt;
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">delta2box</span><span class="p">(</span><span class="n">box2delta</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span> <span class="n">a</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;tf.Tensor: shape=(1, 4), dtype=float32, numpy=array([[ 8., 12., 15., 25.]], dtype=float32)&gt;
+</code></pre></div></div>
+
+<h1 id="bounding-box-loss">Bounding box loss</h1>
+
+<p>When training the predicted “deltas” $p$ are compared directly with $t$ rather than comparing the predicting bounding box $[\hat{x}, \hat{y}, \hat{w}, \hat{h}]$ with the target bounding box $[x, y, h, w]$. This enables the loss to be unaffected by the image dimensions. Typically the smooth-${L_1}$ loss is used.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\text{smooth}_{L_1}(x)=\left\{
+                \begin{array}{ll}
+                  0.5x^2, \text{ }\text{ }\text{ }\text{ }\text{if } |x| < 1\\
+                  |x| - 0.5, \text{ }\text{ }\text{ }\text{ }\text{otherwise}
+                \end{array}
+              \right. %]]></script>
+
+<p>This essentially proportional to the $L2$ loss between -1 and 1 and proportional to the $L1$ loss everywhere else. It avoids the abrupt change in slope around $0$ present in the $L1$ loss. On the other hand if we just used the $L_2$ loss, since the coordinates and the predictions are unbounded, it could potentially increase a lot and lead to exploding gradients.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">201</span><span class="p">)</span>
+
+<span class="n">L1_based</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span>
+<span class="n">L2_based</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">smooth_L1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">L2_based</span><span class="p">,</span> <span class="n">L1_based</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">L1_based</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'L1_based'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'cornflowerblue'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">L2_based</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'L2_based'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'forestgreen'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">smooth_L1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'smooth_L1'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'red'</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s">'--'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Loss functions'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p><img src="/papertrail/assets/ODD_Boxes/output_34_0.png" alt="png" /></p>
+
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/05/05/ODD_Boxes.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

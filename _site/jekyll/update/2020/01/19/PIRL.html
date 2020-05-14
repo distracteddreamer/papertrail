@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Pretext-Invariant Representation Learning (PIRL)</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-01-19T16:58:54+00:00" itemprop="datePublished">Jan 19, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><script type="math/tex">\newcommand{\im}{\mathbf{I}}</script>
+<script type="math/tex">\newcommand{\imp}{\im^\prime}</script>
+<script type="math/tex">\newcommand{\imt}{\im^t}</script>
+<script type="math/tex">\newcommand{\vi}{\mathbf{v}_\im}</script>
+<script type="math/tex">\newcommand{\vit}{\mathbf{v}_\imt}</script>
+<script type="math/tex">\newcommand{\vip}{\mathbf{v}_\imp}</script>
+<script type="math/tex">\newcommand{\mi}{\mathbf{m}_\im}</script>
+<script type="math/tex">\newcommand{\mip}{\mathbf{m}_\imp}</script>
+<script type="math/tex">\newcommand{\score}[2]{s\left({#1}, {#2}\right)}</script>
+<script type="math/tex">\newcommand{\hexp}[2]{\exp\left(\frac{\score {#1} {#2} }{\tau}\right)}</script>
+<script type="math/tex">\newcommand{\hprob}[3]{\frac{\hexp {#1} {#2} }{\hexp {#1} {#2} + \sum_{\mathbf{I}^\prime \in \mathcal{D}_N} \hexp {#2} {#3}}}</script></p>
+
+<p>These are my notes on the paper <a href="https://arxiv.org/abs/1912.01991">Self-Supervised Learning of Pretext-Invariant Representations</a>. All mistakes are my own.</p>
+
+<h2 id="idea">Idea</h2>
+<ul>
+  <li>In the absence of labelled data, features can be learned from unlabelled data using pretext tasks whereby labels are effectively generated from the data itself, for example the image is transformed in some way and the model is trained to predict the properties of the transformation.</li>
+  <li>However when transformations are applied this encourages the model to learn representations that are covariant to the transformations.</li>
+  <li>But the goals to learn representations that are invariant.</li>
+  <li>To do so, in this paper they use the transformations for one such pretext task, the “Jigsaw” task (described below) but rather than predict the transform properties, they use a loss that encourages features of transformed versions of a given image to be similar to the original image and different from other images.</li>
+</ul>
+
+<h2 id="model">Model</h2>
+<p><img src="/papertrail/assets/PIRL/./diagram_net.png" alt="png" /></p>
+
+<h3 id="data">Data</h3>
+<ul>
+  <li>The dataset consists of unlabelled images</li>
+  <li>During training each image $\mathbf{I}$ in a minibatch, $N$ “negative” images are randomly sampled from the dataset (excluding $I$) to get $\mathbf{I}’_1,\ldots,\mathbf{I}’_N$</li>
+</ul>
+
+<h3 id="feature-generation">Feature generation</h3>
+<ul>
+  <li>For each image $\mathbf{I}$, $N$ “negative” images are sampled from the dataset (excluding $I$) to get $\mathbf{I}’_1,\ldots,\mathbf{I}’_N$</li>
+  <li>The inputs $\mathbf{I}$ and $\mathbf{I}’_1,\ldots,\mathbf{I}’_N$ are passed through ConvNet $\phi_\theta$ to get features $\mathbf{v}_\mathbf{I}$ and $\mathbf{v}_{\mathbf{I}’_1},\ldots,\mathbf{v}_{\mathbf{I}’_N}$</li>
+  <li>A transformation $t$ is applied to $\mathbf{I}$ only, to get $\mathbf{I}^t$ which is then passed through $\phi_\theta$ to get $\mathbf{v}_{\mathbf{I}^t}$</li>
+</ul>
+
+<p><img src="/papertrail/assets/PIRL/./diagram_t.png" alt="png" /></p>
+
+<ul>
+  <li>A head $f$ is applied to the untransformed inputs $\mathbf{v}_\mathbf{I}$ and $\mathbf{v}_{\mathbf{I}’_1},\ldots,\mathbf{v}_{\mathbf{I}’_N}$</li>
+</ul>
+
+<p><img src="/papertrail/assets/PIRL/./diagram_f.png" alt="png" /></p>
+
+<ul>
+  <li>A head $g$ is applied to the transformed input $\mathbf{v}_\mathbf{I}^t$</li>
+</ul>
+
+<p><img src="/papertrail/assets/PIRL/./diagram_g.png" alt="png" /></p>
+
+<ul>
+  <li>These vectors are then used to make predictions that are fed into a loss function.</li>
+</ul>
+
+<h3 id="memory-bank">Memory bank</h3>
+<ul>
+  <li>Instead of generating the features for the “negative” images $\mathbf{I}’$ each time,</li>
+  <li>Consists of features $m_\mathbf{I}$ for each image $\mathbf{I}$.</li>
+  <li>$m_I$ is initialised as $f(\mathbf{v}_\mathbf{I})$</li>
+  <li>During training, we only generate features for $\mathbf{I}$ and we use from the memory bank features for $\mathbf{I}’$, $\mathbf{m}_\mathbf{I}$ instead of generating them online</li>
+  <li>The memory bank features of the “positive” image $\mathbf{m}_\mathbf{I}$, are updated with $f(\mathbf{v}_\mathbf{I})$, via EMA</li>
+</ul>
+
+<h2 id="constrastive-loss">Constrastive loss</h2>
+<h3 id="loss-function">Loss function</h3>
+<ul>
+  <li>The goal is (1) to make the features image $\mathbf{I}$ similar to the features of its transformed version whilst (2) ensuring these features do not change too much from the memory bank features.</li>
+  <li>The loss consists of two parts corresponding to (1) and (2) above:
+<img src="/papertrail/assets/PIRL/pirl_eq5.png" alt="png" /></li>
+  <li>The loss function is given as</li>
+</ul>
+
+<p><img src="/papertrail/assets/PIRL/pirl_eq4.png" alt="png" /></p>
+
+<ul>
+  <li>The function $h$ is given as</li>
+</ul>
+
+<p><img src="/papertrail/assets/PIRL/pirl_eq3.png" alt="png" /></p>
+
+<p>where $s$ is the cosine similarity</p>
+
+<ul>
+  <li>This now becomes for (1):
+<script type="math/tex">h(\mi, g(\vit))= 
+\hprob{\mi} {g(\vit)} {\mip} [*]</script></li>
+</ul>
+
+<h3 id="probability-for-positives">Probability for positives</h3>
+<ul>
+  <li>
+    <p>$h$ is the softmax with temperature $\tau$ over the following $N+1$ terms</p>
+
+    <script type="math/tex; mode=display">\score {\mi} {g(\vit)}, \left\{\score {\mip} {g(\vit)}: \mathbf{I}^\prime \in \mathcal{D}_N\right\}</script>
+  </li>
+  <li>
+    <p>Similarly for the second loss the softmax over</p>
+
+    <script type="math/tex; mode=display">\score {\mi} {f(\vi)}, \left\{\score {\mip} {f(\vi)}: \mathbf{I}^\prime \in \mathcal{D}_N\right\}</script>
+  </li>
+  <li>Then $h({\mathbf{m}_\mathbf{I}}, {g(\vit)})$ can be interpreted as the probability that $\mi$ and ${g(\vit)}$ come from the same image relative to the remaining pairs of features.</li>
+  <li>In the second case the probability is that $\mi$ and ${f(\vi)}$ (i.e. the present and the earlier features) come from the same image relative to the remaining pairs.</li>
+</ul>
+
+<h3 id="probability-for-negatives">Probability for negatives</h3>
+<ul>
+  <li>The loss has the term $h(g(\vit), f(\vip))$ which becomes $h(g(\vit), \mip)$ since we never use $f(\vip)$ for the “negative” images.</li>
+  <li>Consider the equation $[*]$ repeated below:</li>
+</ul>
+
+<script type="math/tex; mode=display">h(\mi, g(\vit))= 
+\hprob{\mi} {g(\vit)} {\mip}</script>
+
+<ul>
+  <li>Since now we have $h(g(\vit), \mip)$, assuming the substitution $\mi \rightarrow g(\vit), g(\vit) \rightarrow \mip$ you get</li>
+</ul>
+
+<p>$\newcommand{\Nexpt}{N\exp\left(\frac{1}{t}\right)}$</p>
+
+<script type="math/tex; mode=display">h(g(\vit), \mip)= 
+\hprob{g(\vit)} {\mip} {\mip}
+\\= \frac{\hexp{g(\vit)} {\mip}}{\Nexpt + \hexp{g(\vit)} {\mip}}  
+\\= \frac{1}{\Nexpt\cdot \exp\left(-\frac{\score {g(\vit)} {\mip} }{\tau}\right) + 1} 
+\\= \frac{1}{\exp\left(-\left(\frac{\score {g(\vit)} {\mip} - 1}{\tau} - \log N\right)\right) + 1} 
+\\=\text{sigmoid}\left(\frac{\score {g(\vit)} {\mip} - 1}{\tau} - \log N\right)
+\\\equiv\text{sigmoid}\left(a\cdot{\score {g(\vit)} {\mip}} + b\right)</script>
+
+<p>where in the last line we have written it as the sigmoid of a linear transform of $s$ with</p>
+
+<script type="math/tex; mode=display">a = \frac{1}{\tau}\\
+b =-\frac{1}{\tau} - \log N</script>
+
+<ul>
+  <li>The constant term $N\exp(1/\tau)$ comes about since $\score {\mip} {\mip} = 1$</li>
+  <li>Since $A$ is positive, $0 \leq h(g(\vit), \mip) \leq 1$</li>
+  <li>Analogous to sigmoid as the features become very similar the exponential term tends to $0$ and $h$ tends to $1$ and vice versa</li>
+</ul>
+
+<h3 id="difference-in-the-probabilities">Difference in the probabilities</h3>
+<ul>
+  <li>The probability for the negatives depends only on how similar are the pair $g(\vit), \mip$ or, for the second loss, $f(\vi), \mip$.</li>
+  <li>Whereas the probability for the positives depends on how similar are $\mi, g(\vit)$ relative to all the $\mip, g(\vit)$.</li>
+  <li>The need for a different kind of probability in this step arises because we are only concerned with how $\imp$ relates to $\im$ and $\imt$ and not with each other.</li>
+</ul>
+
+<h2 id="jigsaw-task">Jigsaw task</h2>
+
+<ul>
+  <li>This is the transformation used as $t$ and merely consists of cropping 9 patches from the image which comprise $\vit$, then independently applying $\phi_\theta$ to each patch to get features for each, then merging these features via $g$.</li>
+</ul>
+
+<h2 id="hyperparameters">Hyperparameters</h2>
+<ul>
+  <li>$\lambda = 0.5$ (so the loss is just average of the two terms)</li>
+  <li>$\tau = 0.07$</li>
+  <li>Weight of 0.5 for exponential moving average</li>
+</ul>
+
+<h2 id="how-to-use-this-model">How to use this model</h2>
+<ul>
+  <li>Once it has been trained with the loss, the features from the model can be used to train simpler models for various tasks such as classification and object detection.</li>
+  <li>The simpler models could be trained, for instance, with smaller quantities of labelled data but get much better results than without the self-supervised pre-training.</li>
+  <li>Similarly more complex models pre-trained in this manner can be fine-tuned with less data and achieve better performance.</li>
+</ul>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2020/01/19/PIRL.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

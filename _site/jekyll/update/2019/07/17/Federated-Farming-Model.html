@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Federated Farming, Part 2 - Models</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-07-17T15:51:32+01:00" itemprop="datePublished">Jul 17, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on implementing the federated learning approach presented in <a href="https://arxiv.org/abs/1602.05629v3">Communication-Efficient Learning of Deep Networks from Decentralized Data</a>. You can find all the code <a href="https://github.com/distracteddreamer/fedfarm">here</a>. All mistakes are my own.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>Here we implement and train some federated learning models using the data partitions we created in <a href="/papertrail/jekyll/update/2019/07/17/Federated-Farming-Data.html">part 1</a>.  All the code for the models is in the file <a href="https://github.com/distracteddreamer/fedfarm/blob/master/Federated_Farming-Model.py">Federated_Farming-Model.py</a>. For convenience I am using Keras to build the models.</p>
+
+<p>First we create a dataloader for Keras based on this helpful <a href="https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly">tutorial</a>. It has the option of passing in a <code class="highlighter-rouge">client_colm</code> which refers to the type of shard (“shard_iid” or “shard_non_iid”) and a <code class="highlighter-rouge">num</code> argument which is the shard id, so we can have a separate data generator for each client.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">DataGenerator</span><span class="p">(</span><span class="n">Sequence</span><span class="p">):</span>
+    <span class="s">'Generates data for Keras'</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_path</span><span class="p">,</span> 
+                 <span class="n">batch_size</span><span class="p">,</span> 
+                 <span class="n">img_size</span><span class="p">,</span> 
+                 <span class="n">n_classes</span><span class="p">,</span>
+                 <span class="n">client_colm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">num</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="s">'Initialization'</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num</span> <span class="o">=</span> <span class="n">num</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">df_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="n">client_colm</span><span class="p">]</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_size</span> <span class="o">=</span> <span class="n">img_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">=</span> <span class="n">n_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filenames</span> <span class="o">=</span> <span class="n">rows</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">rows</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">values</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_epoch_end</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>We use a simple ConvNet architecture based on the one introducted in the paper.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">simple_cnn</span><span class="p">(</span><span class="n">img_size</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">):</span>
+        
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">Input</span><span class="p">(</span><span class="n">img_size</span><span class="p">)</span>
+    <span class="n">conv1</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span>
+    <span class="n">pool1</span> <span class="o">=</span> <span class="n">MaxPooling2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">conv1</span><span class="p">)</span>
+    <span class="n">conv2</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="mi">64</span><span class="p">)(</span><span class="n">pool1</span><span class="p">)</span>
+    <span class="n">pool2</span> <span class="o">=</span> <span class="n">MaxPooling2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">conv2</span><span class="p">)</span>
+    <span class="n">flat</span> <span class="o">=</span> <span class="n">Flatten</span><span class="p">()(</span><span class="n">pool2</span><span class="p">)</span>
+    <span class="n">dense</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">)(</span><span class="n">flat</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">n_classes</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'softmax'</span><span class="p">)(</span><span class="n">dense</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">model</span>
+</code></pre></div></div>
+
+<p>The evaluation metric for the competition is <a href="https://www.kaggle.com/c/plant-seedlings-classification/discussion/46728#latest-400410">accuracy</a> which is not the best metric for evaluating on unbalanced data but for consistency we will keep it for the experiments and also because although the distribution of classes is not uniform the proportions of different classes don’t wildly vary either.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_model</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">simple_cnn</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">img_size</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">n_classes</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="n">SGD</span><span class="p">(</span><span class="n">lr</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">),</span>
+                  <span class="n">loss</span><span class="o">=</span><span class="s">'categorical_crossentropy'</span><span class="p">,</span>
+                  <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s">'acc'</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">model</span>
+</code></pre></div></div>
+
+<h1 id="baseline">Baseline</h1>
+<p>As a baseline we will train it on the full train dataset. The code for this is in the function <code class="highlighter-rouge">train_basic</code>. Our configuration is defined as EasyDicts from the easydict module (<code class="highlighter-rouge">pip install easydict</code>) since, as the name implies, it is convenient to access attributes, particularly nested attributes.</p>
+
+<p>We won’t balance the batches or make much effort to optimise the model performance since as they note in the paper with regard to their CIFAR10 experiment “our goal is to evaluate our optimization method, not achieve the best possible accuracy on this task”. This model converges to a little over 60% accuracy, starting to overfit about a third of the way through.</p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/output_7_0.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/output_8_0.png" alt="png" /></p>
+
+<h2 id="federated-averaging">Federated averaging</h2>
+<p>I will go through the most important parts of the implementation here. The key ideas are as follows:</p>
+
+<ul>
+  <li>There are several <strong>rounds</strong> of training</li>
+  <li>A global model is initialised</li>
+  <li>During each round of training local models are trained on a small number of randomly chosen clients with a given <strong>batch size</strong> and <strong>number of epochs</strong>.</li>
+  <li>The global model is updated with the weighted average of the weights from the local models of the chosen clients.</li>
+</ul>
+
+<p>We implement the following algorithm from the paper in the function <code class="highlighter-rouge">fed_averaging</code>:</p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/fed_algorithm.png" alt="png" /></p>
+
+<p>The core of <code class="highlighter-rouge">fed_averaging</code> is as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">num_rounds</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'Round {}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'-'</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'Training'</span><span class="p">)</span>
+    <span class="n">global_weights</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()</span>
+    <span class="n">_global_weights</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">global_weights</span><span class="p">]</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">client_fraction</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">num_clients</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="n">clients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">num_clients</span><span class="p">)[:</span><span class="n">m</span><span class="p">]</span>
+    <span class="n">local_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">client</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">clients</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">set_weights</span><span class="p">(</span><span class="n">global_weights</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">client_update</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+        <span class="n">local_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+
+    <span class="n">local_weights</span><span class="p">,</span> <span class="n">n_examples</span><span class="p">,</span> <span class="n">_tloss</span><span class="p">,</span> <span class="n">_tacc</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">local_results</span><span class="p">)</span>
+    <span class="n">tloss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">_tloss</span><span class="p">)</span>
+    <span class="n">tacc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">_tacc</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">set_weights</span><span class="p">(</span><span class="n">average_weights</span><span class="p">(</span><span class="n">local_weights</span><span class="p">,</span> <span class="n">n_examples</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Since our goal is to understand how the model performs when trained in this manner with different partitions of the data rather than to create a real federated learning setup with clients on different machines communicating with a server, we simulate the broadcasting step. We reset the weights of the model to the global_weights each time before training with the client data via <code class="highlighter-rouge">client_update</code> then saving the client models’ weights in <code class="highlighter-rouge">local_weights</code>. Once we have gone through all the clients we aggregrate the weights with weighted averaging and set these as the global model weights.</p>
+
+<h2 id="client-update">Client update</h2>
+
+<p>The client update is a normal training setup with respect to the data in the client. We train a model for a small number of epochs and then return the weights and the number of examples in the client (plus some metrics).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">client_update</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_df_path</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s">'{}=={}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">client_column</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">DataGenerator</span><span class="p">(</span><span class="n">df_path</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">train_df_path</span><span class="p">,</span> 
+                          <span class="n">batch_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
+                          <span class="n">img_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">img_size</span><span class="p">,</span> 
+                          <span class="n">n_classes</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">n_classes</span><span class="p">,</span>
+                          <span class="n">client_colm</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">client_column</span><span class="p">,</span>
+                          <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit_generator</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> 
+                        <span class="n">epochs</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">epochs</span><span class="p">,</span> 
+                        <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> 
+                        <span class="n">use_multiprocessing</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_weights</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">weights</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">filenames</span><span class="p">),</span>
+            <span class="n">history</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="s">'loss'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> 
+            <span class="n">history</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="s">'acc'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</code></pre></div></div>
+
+<h2 id="weight-averaging">Weight averaging</h2>
+
+<p>Since the weights tend to have defined shapes to update the global weights conveniently we independently average each weight tensor across the sets of weights enabling us to return an aggregated set of weights of the same form as the individual sets of weights.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">average_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">n_examples</span><span class="p">):</span>
+    <span class="n">weight_lists</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">weights</span><span class="p">))</span>
+    <span class="n">total_examples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">n_examples</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_examples</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> 
+            <span class="o">/</span> <span class="n">total_examples</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">weight_lists</span><span class="p">]</span>
+</code></pre></div></div>
+<h2 id="results-wip">Results [WIP]</h2>
+
+<p>Models are compared based on the number of weight updates needed for the model to reach a certain level of performance. For the standard model each mini-batch leads to an update while for the federated learning models the global model is updated after each communication round. For the randomly sampled shards it takes only 27 rounds to reach the highest accuracy attained by the baseline model of 64.06 % which takes more than 7000 minibatch updates.</p>
+
+<p>With the non-representative shards I first stopped the training after about 175 rounds as it did not seem to be improving.</p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/acc1.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/loss1.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/acc_plots.png" alt="png" /></p>
+
+<p>But then I realised I didn’t take into account that the curve would be a lot noiser between rounds. Since typically you plot validation metrics after each epoch rather each mini-batch update I was expecting a smoother curve and misinterpreted the lack of change for several rounds as convergence. So I tried another model where I decayed the learning rate so that after $n$ rounds it was $\alpha_0 \times 0.999^n$. The accuracy improves for a lot longer, starting to converge as the loss curve shows signs of overfitting.</p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/acc2.png" alt="png" /></p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/loss2.png" alt="png" /></p>
+
+<p>Like the CIFAR10 model in the paper this model did not manage to reach the baseline accuracy but reached almost 63% accuracy after 1183 updates whereas it took the baseline model almost 3 times as many updates to get beyond 62% and about 4 times as many updates to cross 63%. One caveat in these comparisons is that for the baseline metrics were only measured at the end of each epoch rather than each update as for the federated learning setup. However since the epoch accuracy improved very slowly, these are still likely to be in the right range of values.</p>
+
+<p><img src="/papertrail/assets/Federated_Farming-Model/acc_plots2.png" alt="png" /></p>
+
+<h2 id="next-steps">Next steps</h2>
+<p>I used a very basic model from the paper for these experiments. I didn’t look at any of the approaches used in the Kaggle challenge. Also I forgot to use augmentations. So the baseline was very low. It might worth trying at least some augmentations as well as some of the smaller models (in the interests of speed for the federated setup) from the Kaggle challenge to improve the performance.</p>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/07/17/Federated-Farming-Model.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

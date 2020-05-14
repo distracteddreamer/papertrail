@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Style GAN</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-06-14T11:51:32+01:00" itemprop="datePublished">Jun 14, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on the paper <a href="https://arxiv.org/abs/1812.04948">A Style-Based Generator Architecture for Generative Adversarial Networks</a>. All mistakes are my own.</p>
+
+<h2 id="architecture">Architecture</h2>
+<h1 id="progressive-gan">Progressive GAN</h1>
+<ul>
+  <li>Used the architecture from PGGAN with a number of changes to the inputs and the processing of intermediate feature maps.</li>
+</ul>
+
+<h1 id="input-transformation">Input transformation</h1>
+<ul>
+  <li>Usually a latent code $z$ is sampled from a distribution and transformed a sequence of layers starting from a fully connected layer which increases its dimensionality followed by convolutional layers which transform it into an image.</li>
+  <li>Here the model instead maps $z$ into an intermediate latent space $\mathcal{W}$</li>
+  <li>The input to the generator is now in fact a learned $4 \times 4 \times 512$ constant tensor.</li>
+</ul>
+
+<h1 id="style-transformation">Style transformation</h1>
+<ul>
+  <li>After <script type="math/tex">z</script> is mapped to $w \in \mathcal{W}$, it is transformed to a style $\mathbf{y}$ that consists of a “scale” style $\mathbf{y}_s$ and a “bias” $\mathbf{y}_b$ style.</li>
+  <li>
+    <p>These style values are then used as the weights in the adaptive normalisation applied to the feature maps output by each convolutional layer:</p>
+
+    <script type="math/tex; mode=display">\text{AdaIN}(\mathbf{x}_i, \mathbf{y}) = \mathbf{y}_{s, i}\frac{\mathbf{x}_i - \mu(\mathbf{x}_i)}{\sigma(\mathbf{x}_i)} + \mathbf{y}_{b,i}</script>
+  </li>
+  <li>$\mathcal{W}$ is an intermediate latent space</li>
+  <li>Noise inputs
+    <ul>
+      <li>After each convolutional layer noise is inserted into the network in a residual fashion.</li>
+      <li>A single channel image of Gaussian noise (independent for each pixel) is broadcast to same number of channels as the output of each convolutional layer using 1x1 convolutions (I think) and added to the output of the convolutional layer.</li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="losses">Losses</h1>
+<ul>
+  <li>WGAN-GP for baseline and non-saturating loss with $R_1$ regularisation for additions.</li>
+</ul>
+
+<h2 id="significance-of-styles">Significance of styles</h2>
+
+<h1 id="key-properties-of-model">Key properties of model</h1>
+<ul>
+  <li>Focus is on the generator rather than discriminator</li>
+  <li>The layers that transform the input can be thought of as sampling styles from a distrbution conditioned on the input latent code.</li>
+  <li>As the outputs of a layer are normalised to have mean of 0, standard deviation of 1, the style applied to the previous stage does not affect the statistics of the next stage</li>
+</ul>
+
+<h1 id="style-mixing">Style mixing:</h1>
+<ul>
+  <li>Since the style inputs are fed into the network at various stages, it is possible to input feed the latent space vector for a different styles at different points in the network.</li>
+  <li>In order to prevent the model from correlating adjacent styles, a regularisation method was used whereby one style was used upto a randomly selected point after which another style was used.</li>
+  <li>When a model is trained with style mixing, if we generate a pair of images A and B using two different styles A and B and a further image which uses style B for a certain set of levels and style A elsewhere, we find that the result is like image A with meaningful attributes from image B depending on the point at which style B is used:
+    <ul>
+      <li>For example copying styles input to layers earlier in the network, with coarser resolutions transfers high-level aspects like pose, general hair style, face shape, eyeglasses</li>
+      <li>Middle resolutions transfer smaller scale facial features, hair style, eyes open/closed while keeping fixed the aspects above.</li>
+      <li>Fine resolutions mainly copy colour scheme and microstructure.</li>
+    </ul>
+  </li>
+  <li>Style mixing improves Frechet Inception Distance (FID) when using multiple latents during test time (and also when using single latents)</li>
+</ul>
+
+<h1 id="stochastic-variation">Stochastic variation</h1>
+<ul>
+  <li>Faces have stochastic variations such as the positions of hairs but it can be challenging to leverage the randomness from the input latent code to make these aspects of the image vary stochastically.</li>
+  <li>Adding random noise to intermediate feature maps means that the latent code is not the only source of randomness</li>
+  <li>It turns out that different images generated from the same latent code but with different random inputs added to the intermediate feature maps look very similar but have.</li>
+  <li>They suggest that there is pressure on the network to keep adding new content at each stage and the easiest way to introduce stochastic variation is to rely on the added noise.</li>
+  <li>The noise is added independently to each pixel its effect is local whereas style is used to scale and bias the whole feature map and affects global attributes.</li>
+  <li>The model seems to learn to use these two sources of randomness in this way without explicit guidance.</li>
+  <li>They suggest that if the added noise was used by the model to control global effects such as pose, it would lead to spatially inconsistent results that would be penalised by the discriminator.</li>
+</ul>
+
+<h2 id="disentanglement">Disentanglement</h2>
+
+<h1 id="perceptual-path-length">Perceptual path length</h1>
+<ul>
+  <li>A pair either of the latent codes $\mathbf{z}$ or the mappings $\mathbf{w}$ are interpolated at two points spaced apart by $\epsilon = 10^{-4}$.</li>
+  <li>The following is the path length for a given pair of styles $\mathbf{z}_1, \mathbf{z}_2 \in P(\mathbf{z})$ and the fraction of the distance along to part where we should start $t ~ \mathcal{N}(0, 1)$:</li>
+  <li>
+    <p>For $\mathcal{Z}$ (where $\text{slerp}$ denotes spherical interpolation):</p>
+
+    <script type="math/tex; mode=display">l_\mathcal{Z} = \mathbb{E}\left[\frac{1}{\epsilon^2}d(G(\text{slerp}(\mathbf{z}_1, \mathbf{z}_2; t), G(\text{slerp}(\mathbf{z}_1, \mathbf{z}_2; t)))\right]</script>
+  </li>
+  <li>
+    <p>For $\mathcal{W}$ (where $\text{lerp}$ denotes linear interpolation):</p>
+
+    <script type="math/tex; mode=display">l_\mathcal{W} = \mathbb{E}\left[\frac{1}{\epsilon^2}d(G(\text{lerp}(f(\mathbf{z}_1), f(\mathbf{z}_2); t), G(\text{lerp}(f(\mathbf{z}_1), f(\mathbf{z}_2); t)))\right]</script>
+  </li>
+  <li>The expected values of this over all possible styles and starting points is estimated by obtaining this value for 100k samples.</li>
+  <li>If the latent space is entangled then there might dependencies between different factors of variation that lead to surprising features in the images that are not present in the images generated using the endpoint styles.</li>
+  <li>The style generator with noise inputs does indeed have a lower perceptual path length for interpolation in $\mathcal{W}$ compared to the outputs for interpolations in $\mathcal{Z}$ for a non-style generator with the same architecture in other respects.</li>
+  <li>If $\mathcal{W}$ is actually a disentangled mapping of $\mathcal{Z}$ it might have regions not found on the input manifold (not 100% sure what they mean by this) which the generator does not reconstruct properly.</li>
+  <li>Evidence that this is the case is provided by the fact that the average path length for just the end points i.e. <script type="math/tex">t \in \{ 0, 1 \}</script> (so that we move away just a little from each style) is smaller than across the whole path.</li>
+</ul>
+
+<h1 id="linear-separability">Linear separability</h1>
+<ul>
+  <li>They train a classifier on 40 attributes of CelebA-HQ - it seems that it is a binary classifier predicting one of a pair of attributes e.g. male or female.</li>
+  <li>The classifier shares the same architecture as the discriminator.</li>
+  <li>They then classify a set of generated images using this classifier, selecting 100k of those with the highest confidence - these predictions are denoted $Y$</li>
+  <li>The latent vector for each of these - either $\mathbf{z}$ or $\mathbf{w}$ depending on whether we are using traditional or style-based - is then classified by a linear SVM and the predictions are denoted $X$</li>
+  <li>Then the conditional entropy $H(Y\vert X)$ is estimated (presumably $p(x, y)$, $p(x)$ are the frequencies of the predicted classifier labels and of the pairs of predicted classifier labels and predicted SVM labels).</li>
+  <li>Separability score is $\exp\left(\sum_i H(Y_i\vert X_i)\right)$ i.e. the exponential of the sum of entropies for each attribute.</li>
+  <li>Note that the classifier predicts a label for the generated image whilst the input to the SVM are the latent vectors.</li>
+  <li>The score measures how separability of the images relative to the latent vectors - A high conditional entropy means that more information needs to be added by the generator to the latent vectors in order to be able to separate the images.</li>
+  <li>Turns out that $\mathcal{W}$ is more separable than $\mathcal{Z}$ and the deeper the mapping network the better separable in general.</li>
+  <li>An interesting finding was that simply mapping $Z$ to a latent space before feeding it directly to a traditional generator (rather than transforming to styles before) made the latents more separable as well as lowering the FID.</li>
+</ul>
+
+<h2 id="topics">Topics</h2>
+<h1 id="ml">ML</h1>
+<p>GAN, style transfer, latent space interpolation</p>
+
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/06/14/Style_GAN.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

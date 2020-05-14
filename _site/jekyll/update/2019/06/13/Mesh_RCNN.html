@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Mesh RCNN</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-06-13T11:51:32+01:00" itemprop="datePublished">Jun 13, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on the paper <a href="https://arxiv.org/pdf/1906.02739">Mesh R-CNN</a>. All mistakes are my own.</p>
+
+<p>Introduction</p>
+<ul>
+  <li>An extension to Mask-RCNN that generates a 3D mesh for each object segmented by Mask-RCNN.</li>
+</ul>
+
+<p>Architecture</p>
+<ul>
+  <li>Voxel branch
+    <ul>
+      <li>Parallel to the box and mask branches of Mask-RCNN with independent weights but sharing the same backbone.</li>
+      <li>Output is a coarse voxel probability map represented by pixel maps of resolution $H x W$ with $N$ channels where for each position $(x,y)$ on the grid the i-th channel indicates the probability that $z = i$.</li>
+    </ul>
+  </li>
+  <li>Cubification
+    <ul>
+      <li>Output is transformed to a coarse cubic mesh in an efficient manner (see a simple implementation in PyTorch <a href="/papertrail/jekyll/update/2020/02/06/Cubify.html">here</a>)</li>
+      <li>This step does not seek to change the geometry of the predicted shape but only its representation from a voxel grid into a mesh</li>
+    </ul>
+  </li>
+  <li>Mesh refinement
+    <ul>
+      <li>A sequence of blocks, where the first one refines the initial mesh and where each subsequent block refines the intermediate mesh output by the previous block.</li>
+      <li>VertAlign
+        <ul>
+          <li>Initially 3D output is in an isometric grid so spacing between the x and y coordinates at all distances $z$</li>
+          <li>However objects become smaller as they recede from the camera in order to maintain pixelwise correspondence between the image and predictions they are projected using the camera’s known intrinsic matrix $K$ into the world space.</li>
+          <li>Like in RoIAlign bilinear interpolation is used to estimate the exact feature vectors for the projected points.</li>
+          <li>The result is a set of vertex and edges plus a feature vector for each vertex</li>
+          <li>This step is applied to the intermediate grids of subsequent layers but I am not sure how to interpret it for subsequent steps since the points have already been projected.</li>
+          <li>In the second and subsequent blocks the input feature vectors are concatenated with the feature vectors</li>
+        </ul>
+      </li>
+      <li>Graph Convolution
+        <ul>
+          <li>Updates the feature vectors for each vertex  $i$ using a sequence of graph convolutions $f^\prime_i = \text{ReLU}\left(W_0f_i + \sum_{j \in \mathcal{N}(i)}W_1f_j\right)$ where $\mathcal{N}(i)$ is set of vertices to which vertex $i$ is connected.</li>
+        </ul>
+      </li>
+      <li>Vertex refinement
+        <ul>
+          <li>Vertex positions are updated as $v_i’ = v_i + \tanh\left(W_{vert}[f_i;v_i]\right)$</li>
+          <li>This changes the geometry but not the topology of the mesh.</li>
+          <li>If you think the mesh as a graph and disregard the coordinates the vertices represent, the connectivity between the vertices does not change but the values of the vertices does.</li>
+          <li>In this step the feature vectors associated with each vertex are unchanged.</li>
+          <li>The unchanged topology at the end of the mesh refinement block allows us to concatenate the feature vectors from previous blocks in the VertAlign step.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>Loss functions</p>
+<ul>
+  <li>Since it is challenging to define losses for a mesh representation, points are densely sampled from the mesh in order to calculate the losses.</li>
+  <li>The Chamfer distance measures the similarity of the predicted and ground truth point clouds
+  <script type="math/tex">L_\text{cham}(P, Q) = |P^-1|\sum_{(p, q) \in \Lambda P,Q}\lVert p - q\rVert^2 + |Q^-1|\sum_{(q, p) \in \Lambda Q,P}\lVert a - b\rVert^2</script></li>
+  <li>The (absolute) normal distance measures the similarity of the face orientation of the predicted and ground truth meshes 
+  <script type="math/tex">L_\text{norm}(P, Q) = - |P^-1|\sum_{(p, q) \in \Lambda P,Q}\lvert u_p \dot u_q \rvert^2 - |Q^-1|\sum_{(q, p) \in \Lambda Q,P}\lvert  u_q \dot u_p \rvert^2</script></li>
+  <li>Minimising these losses does not necessarily produce a good quality mesh so a shape regularizer is added in the form of an edge loss which encourages the edges of faces to be small resulting in a smoother mesh
+  <script type="math/tex">L_\text{edge}(V, E) = \frac{1}{|E|}\sum_{(v, v')\in E}\lVert v - v' \rVert^2</script></li>
+</ul>
+
+<p>Evaluation</p>
+<ul>
+  <li>The following metrics are used:
+    <ul>
+      <li>$L_{\text{cham}}$</li>
+      <li>Normal consistency which is 1 - $L_{\text{norm}}$</li>
+      <li>$F_1^{\tau}$ score, which is the $F_1$ score where the distance $\tau$ is used to define the precision and recall:
+        <ul>
+          <li>Precision is the fraction of gt points within $\tau$ of a pred point</li>
+          <li>Recall is the fraction of gt points within $\tau$ of a pred point</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>Experiments</p>
+<ul>
+  <li>ShapeNet
+    <ul>
+      <li>Data
+        <ul>
+          <li>Textured CAD models</li>
+          <li>These are rendered into RGB images from 24 random viewpoints</li>
+        </ul>
+      </li>
+      <li>Performance
+        <ul>
+          <li>Model is on par with Pixel2Mesh+ (an earlier model Pixel2Mesh with some additions) on the full dataset but when evaluted on just objects with holes does better (since it starts off with a sphere that needs to be transformed to the object)</li>
+          <li>Model also outperforms whilst producing fewer faces</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Pix3D
+    <ul>
+      <li>Data
+        <ul>
+          <li>10069 real-world images and 395 unique 3D models (there can be several images per model where the object has varying appearances)</li>
+          <li>They make two splits, a random split and a disjoint one in which models appearing in validation do not appear in train</li>
+        </ul>
+      </li>
+      <li>Performance
+        <ul>
+          <li>On both splits on all but one object category MeshRCNN outperforms other models</li>
+          <li>In general performance is lower compared to ShapeNet because this is a more difficult dataset.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/06/13/Mesh_RCNN.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+      <title>Paper Trail</title>
+      <meta name="generator" content="Jekyll v3.8.5" />
+      <meta property="og:title" content="Your awesome title" />
+      <meta property="og:locale" content="en_US" />
+      <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <meta property="og:description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description." />
+      <link rel="canonical" href="http://localhost:4000/papertrail/" />
+      <meta property="og:url" content="http://localhost:4000/papertrail/" />
+      <meta property="og:site_name" content="Your awesome title" />
+      <script type="application/ld+json">
+      {"name":"Your awesome title","description":"Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.","@type":"WebSite","url":"http://localhost:4000/papertrail/","headline":"Your awesome title","@context":"https://schema.org"}</script>
+    
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          jax: ["input/TeX", "output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [ ['$', '$'], ["\\(", "\\)"] ],
+            displayMath: [ ['$$', '$$'], ["\\[", "\\]"] ],
+            processEscapes: true,
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          }
+          //,
+          //displayAlign: "left",
+          //displayIndent: "2em"
+        });
+      </script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+      <!-- End Jekyll SEO tag -->
+      <link rel="stylesheet" href="/papertrail/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/papertrail/feed.xml" title="Your awesome title" /></head>
+
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/papertrail/">Paper Trail</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/papertrail/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Disconnected Manifold Learning for GANs</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-08-01T11:51:32+01:00" itemprop="datePublished">Aug 1, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>These are my notes on the paper <a href="https://arxiv.org/pdf/1806.00880">Disconnected Manifold Learning for Generative Adversarial Networks</a>. All mistakes are my own.</p>
+
+<h1 id="introduction">Introduction</h1>
+<p>Natural images may lie disconnected manifolds - for example, a dataset consisting of faces and beds. Interpolations pairs of points on the face manifold or on the bed manifold may be part of the data distribution but interpolating between a point on the face manifold and the bed manifold will most likely result in an out of distribution image. The distribution will have modes for the manifolds but be close to zero elsewhere. Stable training methods and regularisation typically encourage the generator to cover the whole manifold which will result in out of distribution images. The model can minimise the probability of points from regions that are not part of the data manifold but this may also lead to dropping some of the real manifolds. They also suggest that if the generator can’t learn the right support of the real data distribution the equilibrium between the real and fake distributions might not be convergent.</p>
+
+<h1 id="model">Model</h1>
+<p>One approach is to make the latent vector $Z$ disconnected e.g. by using a mixture of Gaussians. Another, which the paper considers, is to use a collection of independent generators $G_c$ with a shared latent space. The generators are encouraged to focus on submanifolds by maximising the mutual information between the generator and its generated data - so that each sample is encouraged to indicate perfectly which generator it came from. This is equivalent to minimising the cross entropy loss between $q(c|x)$ and $p(c)$ where $q(c|x)$ is a learnt approximation for $p(c|x)$. Instead of using a uniform prior, they instead learn $r(c; \zeta)$ minimising the cross entropy between $r(c)$ and the true posterior $p(c|x)$. They add an entropy regularisation term to prevent the probabilities for some generators going down to 0 at the start. To generate an image a generator is first sampled from r(c) and an image is sampled from the generator.</p>
+
+<h1 id="results">Results</h1>
+<p>They measure the following:</p>
+
+<ol>
+  <li>
+    <p>Inter-class variation via the Jensen Shannon Divergence to compare the distributions over predicted classes from a pre-trained classifier for real and fake data to determine how well the distrbution over classes are captured. Smaller is better.</p>
+  </li>
+  <li>
+    <p>Intra-class variation for points from the same predicted class,using Euclidean distance in a small neighbourhood of each point to generate a graph that approximates the true image manifold and find the average of the shortest path distance for each pair of points. Larger is better (suggesting that the model is producing a wide range of samples from the class).</p>
+  </li>
+  <li>
+    <p>They also evaluate sample quality by plotting the ratio of samples with classifier scores higher than some threshold for different thresholds. Larger ratio is better (indicating the classifier’s confidence about the sample which in turn suggests it is of a good quality).</p>
+  </li>
+</ol>
+
+<p>They do experiments with MNIST and a Face-Bedroom datase consisting of equal numbers of images of faces and bedrooms which could reasonably be considered to lie on different manifolds. For both datasets the model performs better compared to other GANs on the metrics considered and also achieves lower Frechet Inception Distance (smaller is better).</p>
+
+  </div><a class="u-url" href="/papertrail/jekyll/update/2019/08/01/Disconnected-Manifold-Learning.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/papertrail/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Paper Trail</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Paper Trail</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Tracking my journey through AI </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
