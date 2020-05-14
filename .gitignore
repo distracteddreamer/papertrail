@@ -4,6 +4,6 @@ _site
 .idea
 _notebooks
 .mypy_cache*
-.sass-cache
+# .sass-cache
 *.vscode
 *.ipynb_checkpoints
