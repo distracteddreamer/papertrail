@@ -57,7 +57,7 @@
   <header class="post-header">
     <h1 class="post-title p-name" itemprop="name headline">Norm Cones</h1>
     <p class="post-meta">
-      <time class="dt-published" datetime="2020-05-14T13:00:58+01:00" itemprop="datePublished">May 14, 2020
+      <time class="dt-published" datetime="2020-05-14T18:04:57+01:00" itemprop="datePublished">May 14, 2020
       </time></p>
   </header>
 
@@ -67,107 +67,95 @@
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 </code></pre></div></div>
 
-<h1 id="norm-cones">Norm cones</h1>
+<p><strong>Definition</strong></p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-<span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">points</span><span class="p">,)</span><span class="o">*</span><span class="mi">2</span><span class="p">)]</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1">#(N, 2)
-</span><span class="n">tt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span> <span class="c1">#(T,)
-</span>
-<span class="n">norm_l1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1">#(N,)
-</span>
-<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tt</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">norm_l1</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'L1 norm cone'</span><span class="p">);</span>
+<p>Given a norm $\lVert\cdot\rVert$, a centre point $\mathbf{x_c} \in \mathbb{R}^n$ a <strong>norm cone</strong> is defined as</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\left\{\mathbf{x} \in \mathbb{R}^n, t \in \mathbb{R}: 
+\lVert\mathbf{x} - \mathbf{x}_c \rVert < t\right\} %]]></script>
+
+<p>Below we shall plot some norm cones for various norms, for $\mathbf{x} \in R^2$. They are all zero-centred i.e. $\mathbf{x_c} = (0, 0)$.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plot_norm_cone</span><span class="p">(</span><span class="n">norm_p</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">colour</span><span class="p">):</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s">'3d'</span><span class="p">)</span>
+    
+    <span class="n">n_str</span> <span class="o">=</span> <span class="s">'</span><span class="err">\</span><span class="s">infty'</span> <span class="k">if</span> <span class="n">norm_p</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span> <span class="k">else</span> <span class="n">norm_p</span>
+    
+    <span class="k">if</span> <span class="n">norm_p</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+        <span class="n">n_exp</span> <span class="o">=</span> <span class="s">"max(|x|, |y|)"</span>
+    <span class="k">elif</span> <span class="n">norm_p</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">n_exp</span> <span class="o">=</span> <span class="s">"|x| + |y|"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_exp</span> <span class="o">=</span> <span class="s">"(|x|_</span><span class="si">%</span><span class="s">s + |y|_</span><span class="si">%</span><span class="s">s)^{1/</span><span class="si">%</span><span class="s">s}"</span> <span class="o">%</span> <span class="p">((</span><span class="n">n_str</span><span class="p">,)</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
+    
+    <span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">points</span><span class="p">,)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">pz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">norm_p</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span>
+        <span class="n">px</span><span class="p">,</span>
+        <span class="n">py</span><span class="p">,</span>
+        <span class="n">pz</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">colour</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span>
+    <span class="p">)</span>
+    
+    <span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">pz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="nb">min</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="mi">11</span><span class="p">),)</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="nb">min</span><span class="p">(</span><span class="n">pz</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="n">pz</span><span class="p">),</span> <span class="mi">11</span><span class="p">)</span>
+                            <span class="p">)</span>
+    
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">norm_p</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    
+    
+    <span class="n">m1</span> <span class="o">=</span> <span class="p">(</span><span class="n">norm</span> <span class="o">&lt;</span> <span class="n">pz</span><span class="p">)</span>
+    <span class="n">m2</span> <span class="o">=</span> <span class="p">(</span><span class="n">norm</span> <span class="o">&gt;</span> <span class="n">pz</span><span class="p">)</span>
+    
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+        <span class="n">px</span><span class="p">[</span><span class="n">m1</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> 
+        <span class="n">py</span><span class="p">[</span><span class="n">m1</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+        <span class="n">pz</span><span class="p">[</span><span class="n">m1</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s">'$</span><span class="si">%</span><span class="s">s &lt; t$'</span><span class="o">%</span><span class="p">(</span><span class="n">n_exp</span><span class="p">)</span>
+    <span class="p">)</span>
+    
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+        <span class="n">px</span><span class="p">[</span><span class="n">m2</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> 
+        <span class="n">py</span><span class="p">[</span><span class="n">m2</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+        <span class="n">pz</span><span class="p">[</span><span class="n">m2</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s">'$</span><span class="si">%</span><span class="s">s &gt; t$'</span><span class="o">%</span><span class="p">(</span><span class="n">n_exp</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">fkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">'$L_</span><span class="si">%</span><span class="s">s$ norm cone'</span><span class="o">%</span><span class="p">(</span><span class="n">n_str</span><span class="p">),</span> <span class="o">**</span><span class="n">fkw</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">'$x$'</span><span class="p">,</span> <span class="o">**</span><span class="n">fkw</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">'$y$'</span><span class="p">,</span> <span class="o">**</span><span class="n">fkw</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s">'$t$'</span><span class="p">,</span> <span class="o">**</span><span class="n">fkw</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
 </code></pre></div></div>
 
-<p><img src="/papertrail/assets/NormCones/output_2_0.png" alt="png" /></p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-<span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">points</span><span class="p">,)</span><span class="o">*</span><span class="mi">2</span><span class="p">)]</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1">#(N, 2)
-</span><span class="n">tt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span> <span class="c1">#(T,)
-</span>
-<span class="n">norm_l2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1">#(N,)
-</span>
-<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tt</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">norm_l2</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'L2 norm cone'</span><span class="p">);</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">plot_norm_cone</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="s">'slateblue'</span><span class="p">)</span>
 </code></pre></div></div>
 
 <p><img src="/papertrail/assets/NormCones/output_3_0.png" alt="png" /></p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-<span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">points</span><span class="p">,)</span><span class="o">*</span><span class="mi">2</span><span class="p">)]</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1">#(N, 2)
-</span><span class="n">tt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span> <span class="c1">#(T,)
-</span>
-<span class="n">norm_l3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cbrt</span><span class="p">((</span><span class="n">x</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1">#(N,)
-</span>
-<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tt</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">norm_l3</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'L3 norm cone;'</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">plot_norm_cone</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="s">'gold'</span><span class="p">)</span>
 </code></pre></div></div>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Text(0.5, 1.0, 'L3 norm cone;')
+<p><img src="/papertrail/assets/NormCones/output_4_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">plot_norm_cone</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="s">'darkgreen'</span><span class="p">)</span>
 </code></pre></div></div>
 
-<p><img src="/papertrail/assets/NormCones/output_4_1.png" alt="png" /></p>
+<p><img src="/papertrail/assets/NormCones/output_5_0.png" alt="png" /></p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-<span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">points</span><span class="p">,)</span><span class="o">*</span><span class="mi">2</span><span class="p">)]</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1">#(N, 2)
-</span><span class="n">tt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span> <span class="c1">#(T,)
-</span>
-<span class="n">norm_l4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">((</span><span class="n">x</span><span class="o">**</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span> <span class="c1">#(N,)
-</span>
-<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tt</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">norm_l4</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'L4 norm cone;'</span><span class="p">)</span>
-</code></pre></div></div>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Text(0.5, 1.0, 'L4 norm cone;')
-</code></pre></div></div>
-
-<p><img src="/papertrail/assets/NormCones/output_5_1.png" alt="png" /></p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-<span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">points</span><span class="p">,)</span><span class="o">*</span><span class="mi">2</span><span class="p">)]</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1">#(N, 2)
-</span><span class="n">tt</span> <span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="c1">#(T,)
-</span>
-<span class="n">norm_l0</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1">#(N,)
-</span>
-<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">tt</span><span class="p">):</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">norm_l0</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">])</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">])</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">"||x||_0 &lt; {}"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s">'L0 norm cone;'</span><span class="p">);</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">plot_norm_cone</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="s">'firebrick'</span><span class="p">)</span>
 </code></pre></div></div>
 
 <p><img src="/papertrail/assets/NormCones/output_6_0.png" alt="png" /></p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-<span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">points</span><span class="p">,)</span><span class="o">*</span><span class="mi">2</span><span class="p">)]</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1">#(N, 2)
-</span><span class="n">tt</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span> <span class="c1">#(T,)
-</span>
-<span class="n">norm_linf</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1">#(N,)
-</span>
-<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tt</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">norm_linf</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-    
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'L$</span><span class="err">\</span><span class="s">infty$ norm cone;'</span><span class="p">);</span>
-</code></pre></div></div>
-
-<p><img src="/papertrail/assets/NormCones/output_7_0.png" alt="png" /></p>
 
 
   </div><a class="u-url" href="/papertrail/jekyll/update/2020/05/14/NormCones.html" hidden></a>

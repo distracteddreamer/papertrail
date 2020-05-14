@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Norm Cones
-date:   2020-05-14 12:00:58
+date:   2020-05-14 17:04:57
 categories: jekyll update
 ---
 
@@ -13,40 +13,77 @@ import numpy as np
 %matplotlib inline
 ```
 
-# Norm cones
+**Definition**
+
+Given a norm $\lVert\cdot\rVert$, a centre point $\mathbf{x_c} \in \mathbb{R}^n$ a **norm cone** is defined as
+
+$$\left\{\mathbf{x} \in \mathbb{R}^n, t \in \mathbb{R}: 
+\lVert\mathbf{x} - \mathbf{x}_c \rVert < t\right\}$$
+
+Below we shall plot some norm cones for various norms, for $\mathbf{x} \in R^2$. They are all zero-centred i.e. $\mathbf{x_c} = (0, 0)$.
 
 
 ```python
-fig = plt.figure(figsize=(8, 8))
-points = np.linspace(-0.5, 0.6, 101)
-px, py = [i.ravel() for i in np.meshgrid(*(points,)*2)]
-x = np.stack([px, py], axis=-1)  #(N, 2)
-tt = np.linspace(0, 0.5, 11) #(T,)
-
-norm_l1 = np.abs(x).sum(-1) #(N,)
-
-for t in tt[::-1]:
-    plt.scatter(*x[norm_l1 < t].T)
-plt.title('L1 norm cone');
+def plot_norm_cone(norm_p, points, colour):
+    fig = plt.figure(figsize=(12, 12))
+    ax =fig.add_subplot(111, projection='3d')
+    
+    n_str = '\infty' if norm_p==np.inf else norm_p
+    
+    if norm_p==np.inf:
+        n_exp = "max(|x|, |y|)"
+    elif norm_p==1:
+        n_exp = "|x| + |y|"
+    else:
+        n_exp = "(|x|_%s + |y|_%s)^{1/%s}" % ((n_str,)*3)
+    
+    px, py = np.meshgrid(*(points,) * 2)
+    pz = np.linalg.norm(np.stack([px, py], axis=-1), norm_p, axis=-1)
+    ax.plot_surface(
+        px,
+        py,
+        pz,
+        color=colour,
+        alpha=0.6
+    )
+    
+    px, py, pz = np.meshgrid(*(np.linspace(np.min(px), np.max(px), 11),)*2,
+                             np.linspace(np.min(pz), np.max(pz), 11)
+                            )
+    
+    norm = np.linalg.norm(np.stack([px, py], axis=-1), norm_p, axis=-1)
+    
+    
+    m1 = (norm < pz)
+    m2 = (norm > pz)
+    
+    ax.scatter(
+        px[m1].ravel(), 
+        py[m1].ravel(),
+        pz[m1].ravel(),
+        alpha=1.0,
+        label='$%s < t$'%(n_exp)
+    )
+    
+    ax.scatter(
+        px[m2].ravel(), 
+        py[m2].ravel(),
+        pz[m2].ravel(),
+        alpha=1.0,
+        label='$%s > t$'%(n_exp)
+    )
+    fkw = dict(fontsize=12)
+    ax.set_title('$L_%s$ norm cone'%(n_str), **fkw)
+    ax.set_xlabel('$x$', **fkw)
+    ax.set_ylabel('$y$', **fkw)
+    ax.set_zlabel('$t$', **fkw)
+    ax.legend();
 ```
 
 
-![png]({{ site.baseurl }}/assets/NormCones/output_2_0.png)
-
-
-
 ```python
-fig = plt.figure(figsize=(8, 8))
-points = np.linspace(-0.5, 0.6, 101)
-px, py = [i.ravel() for i in np.meshgrid(*(points,)*2)]
-x = np.stack([px, py], axis=-1)  #(N, 2)
-tt = np.linspace(0, 0.5, 11) #(T,)
-
-norm_l2 = np.sqrt((x**2).sum(-1)) #(N,)
-
-for t in tt[::-1]:
-    plt.scatter(*x[norm_l2 < t].T)
-plt.title('L2 norm cone');
+points = np.linspace(-0.5, 0.5, 101)
+plot_norm_cone(1, points, 'slateblue')
 ```
 
 
@@ -55,94 +92,30 @@ plt.title('L2 norm cone');
 
 
 ```python
-fig = plt.figure(figsize=(8, 8))
-points = np.linspace(-0.5, 0.6, 101)
-px, py = [i.ravel() for i in np.meshgrid(*(points,)*2)]
-x = np.stack([px, py], axis=-1)  #(N, 2)
-tt = np.linspace(-1, 1, 21) #(T,)
-
-norm_l3 = np.cbrt((x**3).sum(-1)) #(N,)
-
-for t in tt[::-1]:
-    plt.scatter(*x[norm_l3 < t].T)
-plt.title('L3 norm cone;')
+points = np.linspace(-0.5, 0.5, 101)
+plot_norm_cone(2, points, 'gold')
 ```
 
 
-
-
-    Text(0.5, 1.0, 'L3 norm cone;')
-
-
-
-
-![png]({{ site.baseurl }}/assets/NormCones/output_4_1.png)
+![png]({{ site.baseurl }}/assets/NormCones/output_4_0.png)
 
 
 
 ```python
-fig = plt.figure(figsize=(8, 8))
-points = np.linspace(-0.5, 0.6, 101)
-px, py = [i.ravel() for i in np.meshgrid(*(points,)*2)]
-x = np.stack([px, py], axis=-1)  #(N, 2)
-tt = np.linspace(0, 0.5, 11) #(T,)
-
-norm_l4 = np.power((x**4).sum(-1), 1/4) #(N,)
-
-for t in tt[::-1]:
-    plt.scatter(*x[norm_l4 < t].T)
-plt.title('L4 norm cone;')
+points = np.linspace(-0.5, 0.5, 101)
+plot_norm_cone(3, points, 'darkgreen')
 ```
 
 
-
-
-    Text(0.5, 1.0, 'L4 norm cone;')
-
-
-
-
-![png]({{ site.baseurl }}/assets/NormCones/output_5_1.png)
+![png]({{ site.baseurl }}/assets/NormCones/output_5_0.png)
 
 
 
 ```python
-fig, axes = plt.subplots(2, 2, figsize=(8, 8))
-points = np.linspace(-0.5, 0.6, 101)
-px, py = [i.ravel() for i in np.meshgrid(*(points,)*2)]
-x = np.stack([px, py], axis=-1)  #(N, 2)
-tt =[0, 1, 2, 3] #(T,)
-
-norm_l0 = (x>=0).sum(-1) #(N,)
-
-for ax, t in zip(axes.ravel(), tt):
-    ax.scatter(*x[norm_l0 < t].T)
-    ax.set_xlim([-0.5, 0.6])
-    ax.set_ylim([-0.5, 0.6])
-    ax.set_title("||x||_0 < {}".format(t))
-plt.suptitle('L0 norm cone;');
+points = np.linspace(-0.5, 0.5, 101)
+plot_norm_cone(np.inf, points, 'firebrick')
 ```
 
 
 ![png]({{ site.baseurl }}/assets/NormCones/output_6_0.png)
-
-
-
-```python
-fig = plt.figure(figsize=(8, 8))
-points = np.linspace(-0.5, 0.6, 101)
-px, py = [i.ravel() for i in np.meshgrid(*(points,)*2)]
-x = np.stack([px, py], axis=-1)  #(N, 2)
-tt =np.linspace(-0.5, 0.6, 11) #(T,)
-
-norm_linf = x.max(-1) #(N,)
-
-for t in tt[::-1]:
-    plt.scatter(*x[norm_linf < t].T)
-    
-plt.title('L$\infty$ norm cone;');
-```
-
-
-![png]({{ site.baseurl }}/assets/NormCones/output_7_0.png)
 
