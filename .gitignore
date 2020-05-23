@@ -7,3 +7,4 @@ _notebooks
 .sass-cache
 *.vscode
 *.ipynb_checkpoints
+_site
