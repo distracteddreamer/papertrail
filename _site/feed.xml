@@ -1,4 +1,65 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/papertrail/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/papertrail/" rel="alternate" type="text/html" /><updated>2020-05-14T18:05:24+01:00</updated><id>http://localhost:4000/papertrail/feed.xml</id><title type="html">Paper Trail</title><subtitle>Tracking my journey through AI </subtitle><entry><title type="html">Norm Cones</title><link href="http://localhost:4000/papertrail/jekyll/update/2020/05/14/NormCones.html" rel="alternate" type="text/html" title="Norm Cones" /><published>2020-05-14T18:04:57+01:00</published><updated>2020-05-14T18:04:57+01:00</updated><id>http://localhost:4000/papertrail/jekyll/update/2020/05/14/NormCones</id><content type="html" xml:base="http://localhost:4000/papertrail/jekyll/update/2020/05/14/NormCones.html">&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/papertrail/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/papertrail/" rel="alternate" type="text/html" /><updated>2020-05-23T16:10:07+01:00</updated><id>http://localhost:4000/papertrail/feed.xml</id><title type="html">Your awesome title</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.</subtitle><entry><title type="html">EM-Algorithm Convergence</title><link href="http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence.html" rel="alternate" type="text/html" title="EM-Algorithm Convergence" /><published>2020-05-23T15:56:28+01:00</published><updated>2020-05-23T15:56:28+01:00</updated><id>http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence</id><content type="html" xml:base="http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence.html">&lt;p&gt;&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Qz}{Q_i(z^{(i)})}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Qstarz}{Q_i^{*}(z^{(i)})}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Qzt}[1]{Q_i^{(#1)}(z^{(i)})}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Ef}[2]{E_{#1}\left[#2\right]}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\EQt}[2]{E_{\Qzt{#1}}\left[#2\right]}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\losst}[2]{\sum_{i}\EQt{#1}{#2}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\lt}[1]{l^{(#1)}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\thetat}[1]{\theta^{(#1)}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand \pr[1]{p\left(#1\right)}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\px}{\pr{x^{(i)}; \theta}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\pxt}[1]{\pr{x^{(i)}; \theta^{(#1)}}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\pxz}{\pr{x^{(i)}, z^{(i)}; \theta}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\pxzt}[1]{\pr{x^{(i)}, z^{(i)}; \theta^{(#1)}}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\pzgx}{\pr{z^{(i)}| x^{(i)}; \theta}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\pzgxt}[1]{\pr{z^{(i)}| x^{(i)}; \theta^{(#1)}}}&lt;/script&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\phizi}{\phi(z^{i})}&lt;/script&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+
+&lt;p&gt;We wish to show that the log-likelihood $l(\theta)$ increases with each step of the EM-algorithm:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;l(\theta) = \sum_{i}\log\Ef{\Qz}{\frac{\pxz}{\Qz}}&lt;/script&gt;
+
+&lt;p&gt;By Jensen’s inequality&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;l(\theta) = \sum_{i}\log\Ef{\Qz}{\frac{\pxz}{\Qz}} \geq \sum_{i}\Ef{\Qz}{\log\frac{\pxz}{\Qz}} = f(\theta) \text{ }\text{ }\text{ }[1]&lt;/script&gt;
+
+&lt;p&gt;where $f(\theta)$ is the objective we maximise.&lt;/p&gt;
+
+&lt;h2 id=&quot;results-from-the-algorithm&quot;&gt;Results from the algorithm&lt;/h2&gt;
+
+&lt;p&gt;Let us consider the steps of iteration $t+1$.&lt;/p&gt;
+
+&lt;h3 id=&quot;e-step&quot;&gt;E-step&lt;/h3&gt;
+&lt;p&gt;Choose $\Qz$ using the parameters found in the previous iteration, $\thetat {t}$ to make the LHS and RHS of Jensen’s inequality, equal at $\theta = \thetat t$&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\Qzt{t+1} = \pzgxt {t}&lt;/script&gt;
+
+&lt;p&gt;Then we have that&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\sum_{i}\Ef{\Qzt {t+1}}{\log\frac{\pxzt t}{\Qzt {t+1}}} =
+\sum_{i}\log\Ef{\Qzt {t+1}}{\frac{\pxzt t}{\Qzt {t+1}}} \text{ }\text{ }\text{ }[2]&lt;/script&gt;
+
+&lt;h3 id=&quot;m-step&quot;&gt;M-step&lt;/h3&gt;
+&lt;p&gt;The objective to maximise with respect to $\theta$ is&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;f(\theta) = \losst{t + 1}{\log \frac{\pxz}{\pzgxt t}}&lt;/script&gt;
+
+&lt;p&gt;This results in $\thetat {t+1} = \arg \max_\theta f(\theta)$&lt;/p&gt;
+
+&lt;h2 id=&quot;proof-of-convergence&quot;&gt;Proof of convergence&lt;/h2&gt;
+&lt;p&gt;With $\Qz = \Qzt {t+1}$ and $\theta = \thetat {t+1}$ we have by [1] above that:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;l(\thetat {t+1}) \geq \sum_{i}\Ef{\Qzt {t+1}}{\log\frac{\pxzt {t+1}}{\Qzt {t+1}}} = f(\thetat {t + 1})&lt;/script&gt;
+
+&lt;p&gt;Since $\thetat {t + 1}$ maximises $f(\theta)$&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;f(\thetat {t + 1}) \geq f(\thetat {t}) = \sum_{i}\Ef{\Qzt {t+1}}{\log\frac{\pxzt {t}}{\Qzt {t+1}}} = \sum_{i}\log\Ef{\Qzt {t+1}}{\frac{\pxz}{\Qzt {t+1}}} = l(\thetat t)&lt;/script&gt;
+
+&lt;p&gt;where we use [2] above to equate $ f(\thetat {t})$ with $l(\thetat t)$&lt;/p&gt;
+
+&lt;p&gt;Thus $l(\thetat {t+ 1}) \geq l(\thetat t)$&lt;/p&gt;</content><author><name></name></author><summary type="html"></summary></entry><entry><title type="html">Norm Cones</title><link href="http://localhost:4000/papertrail/jekyll/update/2020/05/14/NormCones.html" rel="alternate" type="text/html" title="Norm Cones" /><published>2020-05-14T18:04:57+01:00</published><updated>2020-05-14T18:04:57+01:00</updated><id>http://localhost:4000/papertrail/jekyll/update/2020/05/14/NormCones</id><content type="html" xml:base="http://localhost:4000/papertrail/jekyll/update/2020/05/14/NormCones.html">&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
 &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;matplotlib&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inline&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
@@ -915,179 +976,4 @@ where $T_p$ is the tangent space of $M$ at $p$&lt;/p&gt;
 $w_p(e_1) \ldots w_p(e_d)$&lt;/li&gt;
     &lt;/ul&gt;
   &lt;/li&gt;
-&lt;/ul&gt;</content><author><name></name></author><summary type="html">These are my notes on the papers Gauge Equivariant Convolutional Networks and the Icosahedral CNN [1] and Gauge Equivariant Mesh CNNs [2]. All mistakes are my own. I must particularly emphasise this caveat here since at this point I am still trying to grapple with the ideas in these papers and my interpretation of them is likely to be flawed.</summary></entry><entry><title type="html">[WIP] Word2Vec</title><link href="http://localhost:4000/papertrail/jekyll/update/2020/04/09/Word2Vec.html" rel="alternate" type="text/html" title="[WIP] Word2Vec" /><published>2020-04-09T09:32:00+01:00</published><updated>2020-04-09T09:32:00+01:00</updated><id>http://localhost:4000/papertrail/jekyll/update/2020/04/09/Word2Vec</id><content type="html" xml:base="http://localhost:4000/papertrail/jekyll/update/2020/04/09/Word2Vec.html">&lt;p&gt;Thanks to some very striking results, everyone knows about Word2Vec but the methods behind it are quite complex and subtle. In these post I will focus on the technical details since there are plenty of sources to give you intuition.&lt;/p&gt;
-
-&lt;h2 id=&quot;data&quot;&gt;Data&lt;/h2&gt;
-&lt;p&gt;The data consists of words and their neighbourhoods. Here is a sentence from &lt;em&gt;Emma&lt;/em&gt; by Jane Austen:&lt;/p&gt;
-
-&lt;p&gt;“Emma’s very good opinion of Frank Churchill was &lt;em&gt;a little &lt;strong&gt;shaken&lt;/strong&gt; the following&lt;/em&gt; day, by hearing that he was gone off to London, merely to have his hair cut.”&lt;/p&gt;
-
-&lt;p&gt;The centre word is &lt;em&gt;shaken&lt;/em&gt; and its neighbourbood of distance 2 in each direction consists of [“a”, “little”, “the”, “following”]&lt;/p&gt;
-
-&lt;h2 id=&quot;model&quot;&gt;Model&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;The parameters that the model learns are &lt;script type=&quot;math/tex&quot;&gt;V&lt;/script&gt; &lt;script type=&quot;math/tex&quot;&gt;M&lt;/script&gt;-dimensional vectors, each serving as a feature for a vocabulary of &lt;script type=&quot;math/tex&quot;&gt;V&lt;/script&gt; words.&lt;/li&gt;
-  &lt;li&gt;Actually we have 2 * &lt;script type=&quot;math/tex&quot;&gt;V&lt;/script&gt; such vectors: we have matrix of $U \in \mathcal{R}^{V \times M}$ of input word vectors and a matrix $W \in \mathcal{R}^{V \times M}$ output word vectors.&lt;/li&gt;
-  &lt;li&gt;One represents the word when it is the centre word and the other when it is the context word.&lt;/li&gt;
-  &lt;li&gt;The model tries to learn vectors such that a conditional probably distribution over the words is maximised.&lt;/li&gt;
-  &lt;li&gt;There are two popular approaches, CBOW and Skip-gram&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;notation&quot;&gt;Notation&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;Let us denote the centre word vectors as &lt;script type=&quot;math/tex&quot;&gt;u&lt;/script&gt;, the surrounding word vectors as &lt;script type=&quot;math/tex&quot;&gt;w&lt;/script&gt;&lt;/li&gt;
-  &lt;li&gt;The context of word $i$ is the set of words $C_i$&lt;/li&gt;
-  &lt;li&gt;The vocabulary is the set of all the words use to train the model, $V$, for all of which vectors are learned&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;cbow&quot;&gt;CBOW&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;Here we would like to maximise P(word | context)&lt;/li&gt;
-  &lt;li&gt;The way we would represent it is by averaging the vectors for [“a”, “little”, “the”, “following”] and try to make it be close to the vector for “shaken”&lt;/li&gt;
-  &lt;li&gt;Focus on the $i-th$ word $c-th$ context words, ${c \in C_i}$, where $C_i$ is the context of the word.&lt;/li&gt;
-  &lt;li&gt;First we select the input word vector as the $i-th$ row of $U$ (as per the above shape of $U$, which could of course be transposed or represented differently but the point is that we select the $M$ elements of $U$ that correspond to the input word vector for word $i$).&lt;/li&gt;
-  &lt;li&gt;Similarly we select the $c$-th rows of $W$, where ${c \in C_i}$, to get the output word vectors for the context.&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;We find the dot product of each of the words in the vocabulary to the average context vector and the softmax of this is interpreted as P(word | context)&lt;/p&gt;
-
-    &lt;script type=&quot;math/tex; mode=display&quot;&gt;\hat{w}_c = \frac{1}{|C_i|}\sum_{c \in C_i}w_c&lt;/script&gt;
-
-    &lt;script type=&quot;math/tex; mode=display&quot;&gt;\hat{y} = P(\text{word} = i| \text{context} = C_i) = P(u_i|\{w_c: c \in C_i\}) = \frac{\exp(u_i^T\hat{w}_c)}{\sum_{v \in V} \exp(u_v^T\hat{w}_c)}&lt;/script&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;The loss function is the cross entropy loss $H(y, \hat{y})$ where y is a one-hot probability such that $y_i = 1, y_{j \ne i}=0$, so we have &lt;strong&gt;for word $i$&lt;/strong&gt;:&lt;/p&gt;
-
-    &lt;script type=&quot;math/tex; mode=display&quot;&gt;H(y, \hat{y}) = -\sum_{i=1}^V y_i \log \hat{y}\_i = -y_i \log \hat{y}_i\\
- = -u_i^T\hat{w}_c + \log\sum_{v \in V} \exp(u_v^T\hat{w}_c)&lt;/script&gt;
-  &lt;/li&gt;
-  &lt;li&gt;Minimising this loss will increase the dot product between $u_i^T\hat{w}_c $ and decrease those of $\hat{w}_c$ with the other word vectors and thereby increase the probability of word $i$ given $C_i$ relative to other words.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;skip-gram&quot;&gt;Skip-gram&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;In this case we’d like to maximise P(context | word)&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;But this time the probability is approximated via Naive Bayes where it is assumed that give the centre words the probability of the surrounding words are indepedent of each other&lt;/p&gt;
-
-    &lt;script type=&quot;math/tex; mode=display&quot;&gt;P(\{u_c: c \in C_i\}|w_i) = \prod_{c \in C_i} P(u_c | w_i)&lt;/script&gt;
-  &lt;/li&gt;
-  &lt;li&gt;The goal is again to make the surrounding word vectors similar to the centre but this time by making the “centre version” of the context vectors similar to “surrounding version” of the centre&lt;/li&gt;
-  &lt;li&gt;We still use a softmax probability but here for each surrounding vector we find the softmax over all the centre word vectors
-ake
-  &lt;script type=&quot;math/tex&quot;&gt;P(\{u_c: c \in C_i\}|w_i) = \prod_{c \in C_i}\frac{\exp(u_c^Tw_i)}{\sum_{v \in V} \exp(u_v^Tw_i)}&lt;/script&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;negative-sampling&quot;&gt;Negative sampling&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;Straight away we can see an issue with these formulations - the need to sum across all words in the vocabulary in the denominator.&lt;/li&gt;
-  &lt;li&gt;The solution is to adopt a method called &lt;strong&gt;negative sampling&lt;/strong&gt; variants of which have found favour in other areas in ML such as self-superivised learning in computer vision.&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Consider the first pair of words which plausibly and do in fact come from Jane Austen versus the second which is  from Shakespeare&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;&lt;strong&gt;true elegance&lt;/strong&gt;&lt;/p&gt;
-
-      &lt;p&gt;– &lt;cite&gt;EMMA, Jane Austen&lt;/cite&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;&lt;strong&gt;true avouch&lt;/strong&gt;&lt;/p&gt;
-
-      &lt;p&gt;– &lt;cite&gt;HAMLET, William Shakespeare&lt;/cite&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;Let us say we have many such pairs, some from works by Jane Austen and the rest from other texts and for each we predict the probability that it was from Jane Austen&lt;/li&gt;
-  &lt;li&gt;Let $\mathcal{J} \in {0, 1}$ be an indicator variable that equals 1 if the pair is from Jane Austen and 0 otherwise,.&lt;/li&gt;
-  &lt;li&gt;The probability that pair $(w, c)$ is from Jane Austen is given as $P(\mathcal{J}=1\vert w,c)$.&lt;/li&gt;
-  &lt;li&gt;If it is not from Jane Austen then it is from some other text so the probability it is from some other text is  $P(\mathcal{J}=0\vert w,c) = 1 - P(\mathcal{J}=1\vert w,c)$&lt;/li&gt;
-  &lt;li&gt;The probability is expressed as follows&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;P(\mathcal{J}=1\vert w,c) = \text{sigmoid}(u_w^Tw_c) = \frac{1}{1 + \exp(-u_w^Tw_c)}&lt;/script&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;We would like optimise $P(\mathcal{J}=1\vert w,c)$ for pairs from Jane Austen and $P(\mathcal{J}=0\vert w,c)$ for pairs not from Jane Austen.&lt;/li&gt;
-  &lt;li&gt;That is we want to find parameters $\theta$ that optimise the maximise the probability that pairs that appear in the corpus (here Jane Austen’s writings) are in the corpus and the probability that those that don’t appear in that corpus are not in the corpus.&lt;/li&gt;
-  &lt;li&gt;The equation as given in these &lt;a href=&quot;http://web.stanford.edu/class/cs224n/readings/cs224n-2019-notes01-wordvecs1.pdf&quot;&gt;notes&lt;/a&gt; is shown annotated below:&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;/papertrail/assets/Word2Vec/neg_sampling.png&quot; alt=&quot;png&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;negative-corpus&quot;&gt;Negative corpus&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;We sample from the distribution that results from raising the word frequencies in the corpus to the power of $3/4$.&lt;/li&gt;
-  &lt;li&gt;The order of the weights does not change since $p^{3/4}$ is an increasing function of p for the range $[0, 1]$ but their relative sizes do.&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;These &lt;a href=&quot;http://web.stanford.edu/class/cs224n/readings/cs224n-2019-notes01-wordvecs1.pdf&quot;&gt;notes&lt;/a&gt; give the following example of the resulting weights 
-        is: 0.90 -&amp;gt; 0.825048&lt;/p&gt;
-
-    &lt;p&gt;      Constitution: 0.09 -&amp;gt; 0.146717&lt;/p&gt;
-
-    &lt;p&gt;      bombastic: 0.01 -&amp;gt; 0.028236&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;They remark that&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;“Bombastic” is now 3x more likely to be sampled while “is” onlywent up marginally.&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;However the resulting weights are not normalized so actually would it not be as follows:&lt;/p&gt;
-
-    &lt;p&gt;      is: 0.90 -&amp;gt; 0.83&lt;/p&gt;
-
-    &lt;p&gt;      Constitution: 0.09 -&amp;gt; 0.15&lt;/p&gt;
-
-    &lt;p&gt;      bombastic: 0.01 -&amp;gt; 0.03&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;But the point is that less probable words are more likely to occur in the noise corpus&lt;/li&gt;
-  &lt;li&gt;Basically the ratio of the noise to real probabilities is proportional to $\frac{p^{3/4}}{p} = p^{-1/4}$ which decreases as p increases towards 1.&lt;/li&gt;
-  &lt;li&gt;Thus that the words that were more frequent originally become relatively less frequent compared to those who were more&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;negative-sampling-in-practice&quot;&gt;Negative sampling in practice&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Here is our example phrase again:&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;&lt;em&gt;a little &lt;strong&gt;shaken&lt;/strong&gt; the following&lt;/em&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;For &lt;strong&gt;CBOW&lt;/strong&gt; Swap the centre word vector $u_i$ with the vector for the vector for some other word $u_j$ sampled from the negative corpus e.g.&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;&lt;em&gt;a little &lt;strong&gt;merely&lt;/strong&gt; the following&lt;/em&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;For &lt;strong&gt;skip-gram&lt;/strong&gt; swap the vector for each context word $u_c$ with some other word $u_k$  sampled from the negative corpus e.g.&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;&lt;em&gt;of foppery &lt;strong&gt;shaken&lt;/strong&gt; joint they&lt;/em&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Note that the noise words in above were sampled from a mini-corpus of a few paragraphs from &lt;em&gt;Emma&lt;/em&gt;.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;!-- ## Negative sampling applied to CBOW and Skip-gram
--- [TODO: add annotations of the following:
-- General loss function 
-- Original and modified loss functions for each
-- Roughly speaking, for both CBOW and skip-gram there are two parts to the loss - that pushes up the probability that true pairs co-occur in the dataset and the other which pushes down the probability that that noise pairs don't co-occur. 
-- Each is now replaced with an analogous term based on the negative sampling approach 
--- Annotate as &quot;roughly&quot; 
-]  --&gt;
-
-&lt;h2 id=&quot;whats-left&quot;&gt;What’s left&lt;/h2&gt;
-&lt;!-- - More details on the equations for
-    - The two methods
-    - Negative sampling --&gt;
-&lt;ul&gt;
-  &lt;li&gt;How to modify each method to use negative sampling&lt;/li&gt;
-  &lt;li&gt;Extensions&lt;/li&gt;
-&lt;/ul&gt;</content><author><name></name></author><summary type="html">Thanks to some very striking results, everyone knows about Word2Vec but the methods behind it are quite complex and subtle. In these post I will focus on the technical details since there are plenty of sources to give you intuition.</summary></entry></feed>
+&lt;/ul&gt;</content><author><name></name></author><summary type="html">These are my notes on the papers Gauge Equivariant Convolutional Networks and the Icosahedral CNN [1] and Gauge Equivariant Mesh CNNs [2]. All mistakes are my own. I must particularly emphasise this caveat here since at this point I am still trying to grapple with the ideas in these papers and my interpretation of them is likely to be flawed.</summary></entry></feed>
