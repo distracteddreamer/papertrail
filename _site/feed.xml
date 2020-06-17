@@ -1,4 +1,61 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/papertrail/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/papertrail/" rel="alternate" type="text/html" /><updated>2020-05-23T16:11:24+01:00</updated><id>http://localhost:4000/papertrail/feed.xml</id><title type="html">Your awesome title</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.</subtitle><entry><title type="html">EM-Algorithm Convergence</title><link href="http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence.html" rel="alternate" type="text/html" title="EM-Algorithm Convergence" /><published>2020-05-23T15:56:28+01:00</published><updated>2020-05-23T15:56:28+01:00</updated><id>http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence</id><content type="html" xml:base="http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence.html">&lt;p&gt;&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Qz}{Q_i(z^{(i)})}&lt;/script&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/papertrail/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/papertrail/" rel="alternate" type="text/html" /><updated>2020-06-17T18:34:39+01:00</updated><id>http://localhost:4000/papertrail/feed.xml</id><title type="html">Paper Trail</title><subtitle>Tracking my journey through AI </subtitle><entry><title type="html">Objects As Points</title><link href="http://localhost:4000/papertrail/jekyll/update/2020/06/17/Objects_As_Points.html" rel="alternate" type="text/html" title="Objects As Points" /><published>2020-06-17T14:56:28+01:00</published><updated>2020-06-17T14:56:28+01:00</updated><id>http://localhost:4000/papertrail/jekyll/update/2020/06/17/Objects_As_Points</id><content type="html" xml:base="http://localhost:4000/papertrail/jekyll/update/2020/06/17/Objects_As_Points.html">&lt;h2 id=&quot;architecture&quot;&gt;Architecture&lt;/h2&gt;
+&lt;p&gt;This paper introduces an architecture called CenterNet which is a fully convolutional approach to object detection.&lt;/p&gt;
+
+&lt;p&gt;It takes some inspiration from key point detection like when you are predicting the joints when doing pose detection. It represents the bounding box as a centre point, height and width. It outputs a probability map for each pixel where the value indicates whether or not this point belongs to an object. This is done independently for each class. For each point it also predicts a height and width and an offset from the centre. The offset accounts for the fact that the output has a stride $S$ relative to the input. So the output is a $H/S \times W/S \times (C + 4)$ where they use $S=4$.&lt;/p&gt;
+
+&lt;p&gt;This is very similar to anchor-based approaches where the parameters of a transform are predicited for each “anchor” box (which is a fixed size initial location for the object). Typically there is a set of anchor boxes of different sizes and aspect ratios evenly spaced across the image.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/papertrail/assets/Objects_As_Points/anchors_points.png&quot; alt=&quot;Diagram showing relationship between an anchor boxes and its target and a point and its target&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I think you could also add mask outputs, semantic segmentation style by adding a further mask head, which would let you do instance segmentation with this architecture.&lt;/p&gt;
+
+&lt;h2 id=&quot;training&quot;&gt;Training&lt;/h2&gt;
+&lt;h3 id=&quot;targets&quot;&gt;Targets&lt;/h3&gt;
+&lt;p&gt;The ground truth is obtained by projecting the centre points onto a pixel grid of size $H/S \times W/S$ and blurring them with a Gaussian kernel $\exp(-(x^2 + y^2)/\sigma^2)$. If Gaussians overlap they take the element wise max. So the ground truth is actually a probability map rather than a one-hot mask.&lt;/p&gt;
+
+&lt;h3 id=&quot;losses&quot;&gt;Losses&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;Focal loss for the centre points
+    &lt;ul&gt;
+      &lt;li&gt;A bit different from usual focal loss since the targets are probabilities rather than binary as is usually the case.&lt;/li&gt;
+      &lt;li&gt;Where probability is 1 behaves like usual focal loss&lt;/li&gt;
+      &lt;li&gt;Otherwise it is weighted by (1-y)^beta to reduce contribution from pixels close to the centre.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;L1 loss for the bounding box dimensions where the ground truth is not normalised (only for the foreground points).&lt;/li&gt;
+  &lt;li&gt;L1 loss for the offset, where ground truth is the difference between the real centre and the projected centre (only for the foreground points).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;inference&quot;&gt;Inference&lt;/h2&gt;
+&lt;p&gt;Select up-to top N (they use N=100) points whose confidence is higher than its neighbours. These points can be identified by max-pooling with a kernel-size of 3 after zero-padding with 1 to preserve the dimensions. You can then select those keypoint locations whose probability was chosen. As the offsets and dimensions are predicted per keypoint the corresponding values from these can also be selected in a similar manner.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/papertrail/assets/Objects_As_Points/center_net.jpg&quot; alt=&quot;Diagram showing the CenterNet architecture along with target generation and inference steps&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;results&quot;&gt;Results&lt;/h2&gt;
+&lt;p&gt;It performs worse than most two-stage models but notably better than vanilla-MRCNN. For mAP, it is competitive or better than other one-stage models but not so good for small objects, even when they evaluate with different scales. However using a DLA-34 backbone it is faster than all the models compared at 28 FPS.&lt;/p&gt;
+
+&lt;h2 id=&quot;discussion&quot;&gt;Discussion&lt;/h2&gt;
+&lt;h3 id=&quot;simplicity&quot;&gt;Simplicity&lt;/h3&gt;
+&lt;p&gt;A key advantage of this is that you can reduce the number of hyper-parameters quite a lot. For example in anchor based models, you need to decide how many anchor boxes to use, what sizes and scales.&lt;/p&gt;
+
+&lt;p&gt;Another advantage is that targets are not assigned based on intersection over union. For RetinaNet/Faster-RCNN, you assign targets AFTER the bounding boxes have been predicted based on overlap with ground truth boxes which introduces further heuristics and hyperparameters.&lt;/p&gt;
+
+&lt;h3 id=&quot;speed&quot;&gt;Speed&lt;/h3&gt;
+&lt;p&gt;For $C$ foreground classes, CenterNet has these many predictions:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;(H/4) \times (W/4) \times (C + 4) = \frac{1}{16} \cdot (H \times W \times (C + 4))&lt;/script&gt;
+
+&lt;p&gt;By contrast the original RetinaNet configuration has roughly $3$ times as many predictions, (for $A=9$)&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\sum_{i=3}^{7}(H/2^i) \times (W/2^i) \times A \times (C + 4)
+\\=\left(A\sum_{i=3}^{7}\frac{1}{4^i}\right)\cdot(H \times W \times (C + 4))
+\\=\left(9\cdot\frac{1}{48}\left(1 - \frac{1}{4^5}\right)\right)\cdot(H \times W \times (C + 4))
+\\ \approx \frac{3}{16}\cdot(H \times W \times (C + 4))&lt;/script&gt;
+
+&lt;p&gt;CenterNet could potentially be faster compared with a RetinaNet-like model with the same backbone but this would depend on the architecture of the decoder and the heads as well. In the paper they compare with a RetinaNet model using ResNet-101 and find that it is twice as fast with the same performance.&lt;/p&gt;
+
+&lt;h3 id=&quot;concentric-boxes&quot;&gt;Concentric boxes&lt;/h3&gt;
+&lt;p&gt;The main issue with this approach is when two objects have concentric bounding boxes then only one of these can be predicted. They address this by saying that this accounts for only a handful of the cases in their dataset but I think you can handle these corner case by assigning the ground truth to a neighbouring pixel and let the offset take care of this slight difference.&lt;/p&gt;</content><author><name></name></author><summary type="html">Architecture This paper introduces an architecture called CenterNet which is a fully convolutional approach to object detection.</summary></entry><entry><title type="html">EM-Algorithm Convergence</title><link href="http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence.html" rel="alternate" type="text/html" title="EM-Algorithm Convergence" /><published>2020-05-23T15:56:28+01:00</published><updated>2020-05-23T15:56:28+01:00</updated><id>http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence</id><content type="html" xml:base="http://localhost:4000/papertrail/jekyll/update/2020/05/23/EM-convergence.html">&lt;p&gt;&lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Qz}{Q_i(z^{(i)})}&lt;/script&gt;
 &lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Qstarz}{Q_i^{*}(z^{(i)})}&lt;/script&gt;
 &lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Qzt}[1]{Q_i^{(#1)}(z^{(i)})}&lt;/script&gt;
 &lt;script type=&quot;math/tex&quot;&gt;\newcommand{\Ef}[2]{E_{#1}\left[#2\right]}&lt;/script&gt;
@@ -949,31 +1006,4 @@ $\sum_i \theta_i x_i \in C$, which can be shown as follows:&lt;/p&gt;
 &lt;ul&gt;
   &lt;li&gt;When map and reduce operators are deterministic every time you will get the same results as you would in a sequential execution of the whole program e.g. if you are doing word counts, you count the number of words in document 1, then count those in document 2 and increment the count, and so on. Even if there is a failure and you re-run some of the tasks this will be just the same.&lt;/li&gt;
   &lt;li&gt;However in the absence of determinism reduce task R1’s output might correspond to one sequential execution whilst another reduce task R2’s might correspond to another sequential execution since each time the map task is re-run it might produce a different output.&lt;/li&gt;
-&lt;/ul&gt;</content><author><name></name></author><summary type="html">Notes from my study of MIT’s 6.824: Distributed Systems. This is not intended to be contain a summary of the topics but thoughts and notes related to the concepts in the course.</summary></entry><entry><title type="html">[WIP] Gauge Equivariant Convolutions</title><link href="http://localhost:4000/papertrail/jekyll/update/2020/04/11/Gauge_Equivariant_Convolutions.html" rel="alternate" type="text/html" title="[WIP] Gauge Equivariant Convolutions" /><published>2020-04-11T18:00:53+01:00</published><updated>2020-04-11T18:00:53+01:00</updated><id>http://localhost:4000/papertrail/jekyll/update/2020/04/11/Gauge_Equivariant_Convolutions</id><content type="html" xml:base="http://localhost:4000/papertrail/jekyll/update/2020/04/11/Gauge_Equivariant_Convolutions.html">&lt;p&gt;These are my notes on the papers &lt;a href=&quot;https://arxiv.org/pdf/1902.04615v3.pdf&quot;&gt;Gauge Equivariant Convolutional Networks and the Icosahedral CNN&lt;/a&gt; [1] and &lt;a href=&quot;https://arxiv.org/pdf/2003.05425v1.pdf&quot;&gt;Gauge Equivariant Mesh CNNs&lt;/a&gt; [2]. All mistakes are my own. I must particularly emphasise this caveat here since at this point I am still trying to grapple with the ideas in these papers and my interpretation of them is likely to be flawed.&lt;/p&gt;
-
-&lt;h3 id=&quot;what-is-a-gauge&quot;&gt;What is a gauge?&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Informally we can think of it is as a mesh&lt;/li&gt;
-  &lt;li&gt;Formally it is defined as follows in [1]:&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;[A] position-dependent invertible linear map $w_p: \mathbb{R}^d \rightarrow T_p M$, 
-where $T_p$ is the tangent space of $M$ at $p$&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Informally we can break this down as follows:&lt;/p&gt;
-
-    &lt;ul&gt;
-      &lt;li&gt;Let M be a manifold in  $\mathcal{R}^d$ and let $p$ be a point on this manifold.&lt;/li&gt;
-      &lt;li&gt;Let $T_pM$ be the space of tangent vectors to $M$ at the point $p$.&lt;/li&gt;
-      &lt;li&gt;Further let $e_1 \ldots e_d$ be the standard basis vectors of $\mathbb{R}^d$&lt;/li&gt;
-      &lt;li&gt;For each point $p$ a gauge consists of a set of basis vectors that are tangential to the $M$ at p.&lt;/li&gt;
-      &lt;li&gt;These can be written via the mapping $w_p$ which maps each of $e_1 \ldots e_d$ to
-$w_p(e_1) \ldots w_p(e_d)$&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;</content><author><name></name></author><summary type="html">These are my notes on the papers Gauge Equivariant Convolutional Networks and the Icosahedral CNN [1] and Gauge Equivariant Mesh CNNs [2]. All mistakes are my own. I must particularly emphasise this caveat here since at this point I am still trying to grapple with the ideas in these papers and my interpretation of them is likely to be flawed.</summary></entry></feed>
+&lt;/ul&gt;</content><author><name></name></author><summary type="html">Notes from my study of MIT’s 6.824: Distributed Systems. This is not intended to be contain a summary of the topics but thoughts and notes related to the concepts in the course.</summary></entry></feed>
