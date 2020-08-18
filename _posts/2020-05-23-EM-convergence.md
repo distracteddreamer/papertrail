@@ -4,8 +4,6 @@ title:  EM-Algorithm Convergence
 date:   2020-05-23 14:56:28
 categories: jekyll update
 ---
-
-
 $$\newcommand{\Qz}{Q_i(z^{(i)})}$$
 $$\newcommand{\Qstarz}{Q_i^{*}(z^{(i)})}$$
 $$\newcommand{\Qzt}[1]{Q_i^{(#1)}(z^{(i)})}$$
